@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blockbench Pixel Art"
+  short_description: "Build crisp reference-aware Blockbench models and textures"
+  default_prompt: "Use $blockbench-pixel-art to build and texture a polished pixel-art model in Blockbench."

@@ -1,0 +1,10 @@
+import {build} from 'esbuild';
+import {mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {bundleOptions,root} from './bundle-options.mjs';
+const output=resolve(process.env.BLOCKBENCH_TEST_DIR||resolve(root,'.test-output'));
+mkdirSync(output,{recursive:true});
+await build({...bundleOptions(),stdin:{contents:'export * from "./src/runtime.ts"; export * from "./src/registry.ts"; export * from "./src/engine-audit.ts"; export * from "./src/creature-tools.ts";',resolveDir:root,loader:'ts'},format:'esm',outfile:resolve(output,'runtime.mjs')});
+const result=spawnSync(process.execPath,['--test','tests/registry.test.mjs','tests/engines.test.mjs','tests/relay.test.mjs','tests/upstream.test.mjs'],{cwd:root,stdio:'inherit',env:{...process.env,BLOCKBENCH_TEST_DIR:output}});
+process.exitCode=result.status??1;

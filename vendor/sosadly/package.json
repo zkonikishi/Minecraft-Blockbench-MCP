@@ -1,0 +1,46 @@
+{
+  "name": "blockbench-mcp",
+  "version": "0.2.0",
+  "description": "MCP server that lets an AI drive Blockbench: create models, textures, animations, take screenshots, install plugins and more.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "blockbench-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "files": [
+    "dist",
+    "plugin"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "blockbench",
+    "minecraft",
+    "geckolib",
+    "3d",
+    "modeling",
+    "ai"
+  ],
+  "license": "MIT",
+  "author": "sosadly (https://github.com/sosadly)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sosadly/blockbench-mcp.git"
+  },
+  "homepage": "https://github.com/sosadly/blockbench-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/sosadly/blockbench-mcp/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

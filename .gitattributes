@@ -1,0 +1,8 @@
+* text=auto
+*.ts text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+# Preserve upstream snapshot bytes exactly on every OS for hash verification.
+vendor/** -text

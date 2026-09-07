@@ -1,0 +1,36 @@
+{
+  "name": "minecraft-blockbench-mcp",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "Unified desktop and Web Blockbench MCP for BetterModel and ModelEngine creature authoring",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "test:upstream": "node scripts/upstream-tests.mjs",
+    "test:live": "node scripts/live-smoke.mjs",
+    "start": "node --env-file-if-exists=.env relay/cli.mjs"
+  },
+  "dependencies": {
+    "zod": "3.25.76",
+    "zod-to-json-schema": "3.25.1",
+    "ajv": "8.17.1",
+    "ws": "8.18.3",
+    "@modelcontextprotocol/sdk": "1.25.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3",
+    "@types/node": "22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zkonikishi/Minecraft-Blockbench-MCP.git"
+  }
+}
