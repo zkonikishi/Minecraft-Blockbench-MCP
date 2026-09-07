@@ -8,7 +8,15 @@ BetterModel documents BB4/5 support, limited mesh UV support, Molang, Bezier and
 
 The audit checks names and references, group/outliner layout in BB4/5, cube bounds, texture references, UV bounds, default-state hints, keyframe times, primary hitbox shape and actual hitbox keyframes. It does not evaluate Molang, render every frame, decode every PNG, validate all custom tags or prove Minecraft performance. Empty preview-created bone animator records do not count as animated hitboxes.
 
-`mc_set_bone_behavior` renames a uniquely resolved bone. Empty mount and seat bones are enforced. Hitbox geometry and server mechanics remain separate setup; renaming is not sufficient to deploy a working mount or combat hitbox. Re-running a prefix rename can add another prefix, so inspect the current name before invoking it again.
+`mc_set_bone_behavior` covers attachment, segment/tail and player-limb tags, including `limb[type=...]`. It preserves UUIDs, replaces a recognized tag instead of stacking it, rejects normalized ID collisions and checks direct geometry. Segment bones can retain child bones. Renaming does not configure server mechanics or prove runtime behavior.
+
+## Official Wiki profile (Alpha 2)
+
+The user supplied https://wiki.mythiccraft.io/modelengine as the adaptation basis. `mc_modelengine_features` separates implemented authoring tools, reference-only features and unverified runtime capabilities. The Wiki pages report 2026-08-19 updates but do not identify the user's exact Dev build. The profile reports `devBuild: null` and `runtimeVerified: false`.
+
+Example: call `mc_set_bone_behavior` with `target: "modelengine"`, a bone UUID and `behavior: "tail_front"`; for `behavior: "player_limb"`, also provide `limb_type`, such as `"right_forearm"`. Query `mc_modelengine_features` for the complete enum. The helper supports one recognized behavior tag per bone, not arbitrary composite tags. New checks cover ID collisions, direct geometry and AABB dimensions; OBB remains rectangular-capable.
+
+Scriptable keyframes are **reference-only**. The [official instructions](https://wiki.mythiccraft.io/modelengine/Modeling/Scriptable-Keyframes) describe effects-timeline instructions for MythicMobs skills and ModelEngine commands. This MCP has no dedicated script-keyframe writer or server execution verification. Runtime skins, mounts, custom renderers and other server APIs remain outside the editor plugin.
 
 ## Primary references
 

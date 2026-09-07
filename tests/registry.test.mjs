@@ -38,3 +38,20 @@ test('a throwing handler does not poison the lane; unknown tool and invalid args
   const r=new ToolRegistry(()=>null);r.add(tool('bad',()=>{throw new Error('expected');}));r.add(tool('good',()=>({ok:true})));
   assert((await r.call('bad')).isError);assert.equal(content(await r.call('good')).ok,true);assert((await r.call('missing')).isError);assert((await r.call('good',[])).isError);
 });
+test('Wiki bone tags preserve UUID, are idempotent, and reject collisions before Undo',async()=>{
+  const saved={Project:globalThis.Project,Group:globalThis.Group,Undo:globalThis.Undo};let edits=0;
+  const child={uuid:'child',name:'shape',children:[]};const bone={uuid:'bone',name:'tail_base',children:[child]};
+  globalThis.Project={};globalThis.Group={all:[bone,child]};globalThis.Undo={initEdit(){edits++;},finishEdit(){}};
+  try{
+    const r=createRuntime();const args={target:'modelengine',bone:'bone',behavior:'segment_front'};
+    const first=content(await r.call('mc_set_bone_behavior',args));assert.equal(first.name,'segf_tail_base');assert.equal(first.uuid,'bone');
+    assert.equal(content(await r.call('mc_set_bone_behavior',args)).changed,false);assert.equal(edits,1);
+    assert.equal((await r.call('mc_set_bone_behavior',{...args,target:'bettermodel'})).isError,true);
+    child.name='tail_base';assert.equal((await r.call('mc_set_bone_behavior',{...args,behavior:'tail'})).isError,true);assert.equal(edits,1);
+    child.name='shape';bone.children=[{type:'cube'}];assert.equal((await r.call('mc_set_bone_behavior',args)).isError,true);assert.equal(edits,1);
+    bone.children=[];
+    assert.equal((await r.call('mc_set_bone_behavior',{...args,behavior:'player_limb'})).isError,true);
+    assert.equal(content(await r.call('mc_set_bone_behavior',{...args,behavior:'player_limb',limb_type:'right_forearm'})).name,'limb[type=right_forearm]_tail_base');
+    assert.equal(content(await r.call('mc_modelengine_features')).devBuild,null);
+  }finally{Object.assign(globalThis,saved);}
+});

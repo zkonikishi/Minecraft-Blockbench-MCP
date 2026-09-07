@@ -41,3 +41,15 @@ test('three creature scaffolds have unique names, topologically ordered bones, v
     assert(!plan.create_groups.find(g=>g.name==='hitbox').parent);
   }
 });
+test('ModelEngine normalized IDs and cube-less tags are audited without imposing them on BetterModel',()=>{
+  const m=modelFixture();m.outliner.push({uuid:'second',name:'h_body',children:[]});
+  assert(codes(m,'modelengine').has('ENGINE_BONE_ID_DUPLICATE'));
+  assert(!codes(m,'bettermodel').has('ENGINE_BONE_ID_DUPLICATE'));
+  m.outliner.pop();m.outliner[0].name='seg_body';
+  assert(codes(m,'modelengine').has('BONE_BEHAVIOR_GEOMETRY'));
+});
+test('AABB has square/size checks while rectangular OBB is allowed',()=>{
+  const m=modelFixture();m.elements[0].to=[2,2,1];m.outliner[0].name='b_body';
+  assert(codes(m,'modelengine').has('HITBOX_SQUARE'));
+  m.outliner[0].name='ob_body';assert(!codes(m,'modelengine').has('HITBOX_SQUARE'));
+});

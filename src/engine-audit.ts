@@ -1,3 +1,4 @@
+import { parseBehavior, behaviorGeometryIssue, MODELENGINE_CAPABILITIES } from './modelengine.js';
 export type EngineTarget = 'bettermodel' | 'modelengine' | 'both';
 export type Finding = {severity:'error'|'warning';code:string;path:string;message:string};
 export const ENGINE_SOURCES = {
@@ -12,7 +13,7 @@ export const ENGINE_PROFILES = {
   bettermodel: {format:'free',extension:'.bbmodel',defaultAnimations:['idle','walk','spawn','death','idle_fly','walk_fly','jump'],
     features:['Molang keyframes','Bezier interpolation','IK rigging','parent-following hitboxes: b_ / ob_ / hitbox'],
     limits:['Mesh support has UV limitations','Armature, spline and billboard elements are unsupported'],sources:ENGINE_SOURCES},
-  modelengine: {format:'free',extension:'.bbmodel',defaultAnimations:['idle','walk','jump_start','jump','jump_end','spawn','death'],
+  modelengine: {format:'free',extension:'.bbmodel',capabilities:MODELENGINE_CAPABILITIES,defaultAnimations:['idle','walk','jump_start','jump','jump_end','spawn','death'],
     features:['loop / once / hold','animation override','special bone behaviors','hitbox and shadow groups'],
     limits:['hitbox bone is removed from the animated skeleton','Bezier currently falls back to linear','Hitbox: square X/Z; maximum 1024 pixels per dimension'],sources:ENGINE_SOURCES},
 };
@@ -67,13 +68,26 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
   };
   visit(model.outliner);
   const names=new Set<string>();
+  const engineIds=new Set<string>();
   for(const [id,g] of groups) {
     if(names.has(g.name))add('error','BONE_NAME_DUPLICATE',id,`Duplicate bone name: ${g.name}`);
     names.add(g.name);
     if(typeof g.name!=='string'||!g.name) add('error','BONE_NAME_MISSING',id,'Bone must have a name');
     if(!visited.has(id))add('error','BONE_ORPHAN',id,'Bone is absent from the outliner');
     if(g.origin!==undefined&&!vector(g.origin))add('error','PIVOT_INVALID',id,'Bone pivot must have three finite numbers');
-    if(target==='both'&&/^(?:b_|ob_|h_|hi_|mount_|phead_|tag_)/.test(g.name||''))add('warning','ENGINE_BONE_TAG',id,'Special bone tags have engine-specific semantics; verify a separate engine variant.');
+    const tag=parseBehavior(g.name||'');
+    if(target==='both'&&tag)add('warning','ENGINE_BONE_TAG',id,'Special bone tags have engine-specific semantics; verify a separate engine variant.');
+    if(target!=='bettermodel'){
+      const engineId=tag?.id??g.name;
+      if(engineIds.has(engineId))add('error','ENGINE_BONE_ID_DUPLICATE',id,'Bone IDs collide after removing ModelEngine tags');
+      engineIds.add(engineId);
+      if(tag){
+        const directElements=[...elementMap.keys()].filter(key=>parents.get(key)===id).length;
+        const children=[...parents.values()].filter(parent=>parent===id).length;
+        const issue=behaviorGeometryIssue(tag.behavior,directElements,children);
+        if(issue)add('warning','BONE_BEHAVIOR_GEOMETRY',id,issue);
+      }
+    }
   }
   if(groups.size>boneBudget)add('warning','BONE_BUDGET','groups',`${groups.size} bones exceed your advisory budget ${boneBudget}; this is not an engine hard limit.`);
   const w=model.resolution?.width,h=model.resolution?.height;
@@ -127,7 +141,7 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
     if(!count)add('warning','ANIMATION_EMPTY',a.name,'Animation slot has no bone keyframes yet');
   }
   for(const state of ['idle','walk'])if(!animationNames.has(state))add('warning','STATE_MISSING',state,`No ${state} animation; add it or configure the engine state mapping`);
-  for(const [id,g] of groups)if(g.name==='hitbox'&&target!=='bettermodel') {
+  for(const [id,g] of groups)if((g.name==='hitbox'||parseBehavior(g.name||'')?.behavior==='aabb')&&target!=='bettermodel') {
     const cubes=elements.filter(e=>parents.get(e.uuid)===id&&(e.type||'cube')==='cube');
     if(cubes.length!==1)add('warning','HITBOX_COUNT',id,'Use one defining cube in the primary hitbox bone');
     for(const c of cubes)if(vector(c.from)&&vector(c.to)) {

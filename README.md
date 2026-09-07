@@ -2,7 +2,7 @@
 
 让 AI 在 **Blockbench 桌面版和 Web 版**中制作 Minecraft 生物模型、贴图与骨骼动画，主要面向 **BetterModel / ModelEngine**。
 
-**0.1.0-alpha.1 · GPL-3.0-only · 开发分支 Alpha**
+**0.1.0-alpha.2 · GPL-3.0-only · 开发分支 Alpha**
 
 这是三个开源 MCP 的实际代码整合：一个编辑器插件、一个本地 MCP 服务、一个共享执行队列。整合了近 200 个工具，数量和可用性以连接后的 `tools/list` 为准。
 
@@ -78,11 +78,14 @@ Web 安装同样使用“从文件加载”。Blockbench 不允许通过普通 H
 | 引擎独有状态 | idle_fly / walk_fly / jump | jump_start / jump / jump_end |
 | 主 hitbox、b_ / ob_ 子碰撞箱 | 标签助手与检查 | 标签助手与检查 |
 | head / inherited head / mount / seat | 未提供同名映射 | h_ / hi_ / mount / p_ |
+| 物品挂点、名字牌、牵引点、分段/尾巴、玩家肢体 | 未提供同名映射 | 标签助手及几何/ID 检查 |
 | Bezier | 规范允许 | 检查提示线性回退 |
 | Armature / spline / billboard | 检查报错 | 不作为共同基线 |
 | 导入服务器、资源包生成、游戏内 AI | 需要独立验收 | 需要独立验收 |
 
 `target: "both"` 采用保守交集；它不会同时模拟两个引擎，也不会自动转换所有引擎特性。骨骼预算默认 64 只是提醒阈值。完整差异与依据见 [兼容性说明](docs/COMPATIBILITY.md)。
+
+Alpha 2 按官方 Wiki 扩展骨骼标签，并增加 `mc_modelengine_features`，区分已实现、仅供参考和待验收功能。Wiki 没有锁定具体 Dev 构建号，因此不宣称支持所有 Dev 特性；脚本关键帧和服务器 API 仍无专项实现。本轮新增功能经过模拟编辑器与静态测试，尚未补做真实编辑器/游戏内验收。
 
 ## 测试与当前边界
 

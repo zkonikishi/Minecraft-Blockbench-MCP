@@ -14,7 +14,7 @@ export function createRuntime(options:{desktop?:boolean;advanced?:boolean}={}) {
   }
   for(const tool of creatureTools())registry.add(tool);
   registry.add(zodTool('mc_status','Inspect this connection, available tool families, project and engine authoring profile.',z.object({}).strict(),()=>({
-    name:'Minecraft Blockbench MCP',version:'0.1.0-alpha.1',mode:options.desktop?'desktop':'web',
+    name:'Minecraft Blockbench MCP',version:'0.1.0-alpha.2',mode:options.desktop?'desktop':'web',
     project:(globalThis as any).Project?{name:(globalThis as any).Project.name,uuid:(globalThis as any).Project.uuid,format:(globalThis as any).Format?.id}:null,
     toolCount:registry.definitions.size,unavailable,targets:['BetterModel','ModelEngine'],runtimeVerified:false,
   }),{annotations:{readOnlyHint:true}}));

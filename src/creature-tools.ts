@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { zodTool, type ToolDefinition } from './registry.js';
 import { auditModel, ENGINE_PROFILES, ENGINE_SOURCES, type EngineTarget } from './engine-audit.js';
 import { createProject, applyGeometryBatch, upsertAnimation } from './vendor-runtime.mjs';
+import { behaviorSchema, limbSchema, behaviorName, behaviorGeometryIssue, parseBehavior, MODELENGINE_CAPABILITIES, type Behavior } from './modelengine.js';
 const targetSchema=z.enum(['bettermodel','modelengine','both']).default('both');
 const idSchema=z.string().regex(/^[a-z][a-z0-9_]{0,63}$/);
 const G=()=>globalThis as any;
@@ -45,6 +46,7 @@ export function scaffoldPlan(archetype:'biped'|'quadruped'|'dragon',scale=1,hitb
 }
 export function creatureTools():ToolDefinition[] {
   return [
+    zodTool('mc_modelengine_features','Inspect implemented ModelEngine features versus reference-only and unverified Dev capabilities.',z.object({}).strict(),()=>MODELENGINE_CAPABILITIES,{annotations:{readOnlyHint:true}}),
     zodTool('mc_engine_profile','BetterModel / ModelEngine feature profiles, differences and authoritative references.',z.object({target:targetSchema}).strict(),({target})=>target==='both'?ENGINE_PROFILES:ENGINE_PROFILES[target as keyof typeof ENGINE_PROFILES]),
     zodTool('mc_get_workflow','Start here: workflow for a complex Minecraft creature using all three integrated tool families.',z.object({}).strict(),()=>({
       sequence:['mc_create_project','mc_scaffold_creature (optional blockout)','craft_apply_geometry_batch / studio_* refinement','craft_ensure_texture','craft_pack_box_uv','craft_get_uv_layout','craft_paint_face_grid / anim_texture tools','mc_create_animation_set (empty slots)','anim_add_keyframes / craft_upsert_animation / studio animation tools','craft_capture_views','mc_audit_model','mc_export_bbmodel'],
@@ -78,14 +80,19 @@ export function creatureTools():ToolDefinition[] {
       }
       return {created,preserved,emptySlots:true,next:'Author bone keyframes with anim_add_keyframes or craft_upsert_animation. Combat clips need server triggers.'};
     }),
-    zodTool('mc_set_bone_behavior','Rename one bone to a documented engine behavior; creates no server-side AI or skill wiring.',z.object({target:z.enum(['bettermodel','modelengine']),bone:z.string().min(1),behavior:z.enum(['hitbox','shadow','head','inherited_head','mount','seat','aabb','obb']),name:idSchema.optional()}).strict(),({target,bone,behavior,name})=>{
+    zodTool('mc_set_bone_behavior','Set a Wiki-documented bone tag, including segment/tail, attachments and player limbs. Preserves UUID and checks geometry; no server-side execution.',z.object({target:z.enum(['bettermodel','modelengine']),bone:z.string().min(1),behavior:behaviorSchema,name:idSchema.optional(),limb_type:limbSchema.optional()}).strict(),({target,bone,behavior,name,limb_type})=>{
       const matches=(G().Group?.all||[]).filter((g:any)=>g.uuid===bone||g.name===bone);
       if(matches.length!==1)throw new Error('Bone must resolve uniquely; use its UUID');
-      const group=matches[0];const suffix=name||group.name;
-      const map:Record<string,string>=target==='modelengine'?{hitbox:'hitbox',shadow:'shadow',head:`h_${suffix}`,inherited_head:`hi_${suffix}`,mount:'mount',seat:`p_${suffix}`,aabb:`b_${suffix}`,obb:`ob_${suffix}`}:{hitbox:'hitbox',shadow:'shadow',aabb:`b_${suffix}`,obb:`ob_${suffix}`};
-      const next=map[behavior as string];if(!next)throw new Error('This behavior is not mapped for this engine; use the profile references.');
+      const group=matches[0];
+      const next=behaviorName(target as any,group.name,behavior as Behavior,name as string|undefined,limb_type as any);
       if(G().Group.all.some((g:any)=>g!==group&&g.name===next))throw new Error(`Bone name already exists: ${next}`);
-      if(['mount','seat'].includes(behavior as string)&&group.children?.length)throw new Error('Mount/seat behavior requires an empty bone');
+      if(target==='modelengine'){
+        const id=parseBehavior(next)?.id??next;
+        if(G().Group.all.some((g:any)=>g!==group&&(parseBehavior(g.name)?.id??g.name)===id))throw new Error(`ModelEngine bone ID collision after removing tags: ${id}`);
+      }
+      const issue=behaviorGeometryIssue(behavior as Behavior,(group.children||[]).filter((c:any)=>!G().Group.all.includes(c)).length,group.children?.length||0);
+      if(issue)throw new Error(issue);
+      if(next===group.name)return {uuid:group.uuid,name:next,changed:false,target,serverSetupRequired:true};
       G().Undo.initEdit({outliner:true});group.name=next;G().Undo.finishEdit('Minecraft bone behavior');
       return {uuid:group.uuid,name:next,target,serverSetupRequired:true,sources:ENGINE_SOURCES};
     }),
