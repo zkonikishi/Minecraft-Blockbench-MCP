@@ -41,7 +41,7 @@ export function scaffoldPlan(archetype:'biped'|'quadruped'|'dragon',scale=1,hitb
       cube(`${side}_wing_outer`,[Math.min(s*18,s*30),15,-1],[Math.max(s*18,s*30),16,6],`${side}_wing_tip`);
     }
   }
-  if(hitbox){groups.push({name:'hitbox',origin:[0,0,0]});cube('hitbox_shape',[-6,0,-6],[6,archetype==='biped'?32:23,6],'hitbox');}
+  if(hitbox){groups.push({name:'hitbox',origin:v([0,archetype==='biped'?28:20,0])});cube('hitbox_shape',[-6,0,-6],[6,archetype==='biped'?32:23,6],'hitbox');}
   return {create_groups:groups,create_cubes:cubes,undo_label:`Minecraft ${archetype} scaffold`};
 }
 export function creatureTools():ToolDefinition[] {

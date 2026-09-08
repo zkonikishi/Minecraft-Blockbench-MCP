@@ -23,6 +23,10 @@ Alpha 3 adds 16 dedicated tools to the existing 190-tool default Web catalogue. 
 
 ## Animation
 
+Since Alpha 5, a primary `mc_convert_hitbox` accepts `eye_height`, the world Y pivot in pixels (positive, at most 1024). If omitted it uses 85% of the box's top Y. Boxes entirely below ground need an explicit positive value. This option is rejected for sub-hitboxes. The converted cube bounds remain unchanged. Creature scaffolds use scaled eye heights of 28 pixels for bipeds and 20 for quadrupeds/dragons. The ModelEngine audit warns about a nonpositive primary hitbox pivot; it does not impose this engine-specific warning on BetterModel.
+
+The pivot rule comes from the official [Hitbox and Eye Height documentation](https://wiki.mythiccraft.io/modelengine/Modeling/Creating-a-Model#hitbox-and-eye-height).
+
 Author the source side with `mc_transform_keyframes`, then call:
 
 ```json

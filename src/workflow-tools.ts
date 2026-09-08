@@ -95,15 +95,18 @@ export function workflowTools():ToolDefinition[]{return [
     const affected=current?[current]:[];
     return edit('Edit creature bounds',{elements:affected,outliner:true},()=>{const box=current??new (G().BoundingBox)({name:a.name}).init();if(!current)affected.push(box);box.extend({name:a.name,from,to,function:['hitbox','collision']});box.preview_controller.updateGeometry(box);return serialize(box);});
   }),
-  zodTool('mc_convert_hitbox','Convert a root-level native bounding box into a separate engine hitbox bone and defining cube. ModelEngine AABB expands X/Z equally; does not delete the authoring box.',z.object({box:id,target:z.enum(['bettermodel','modelengine']),kind:z.enum(['primary','aabb','obb']).default('primary'),name}).strict(),a=>{
+  zodTool('mc_convert_hitbox','Convert a root-level native bounding box into a separate engine hitbox bone and defining cube. Primary eye_height is the world Y pivot in pixels, defaulting to 85% of the box top. ModelEngine AABB expands X/Z equally; does not delete the authoring box.',z.object({box:id,target:z.enum(['bettermodel','modelengine']),kind:z.enum(['primary','aabb','obb']).default('primary'),eye_height:z.number().finite().positive().max(1024).optional(),name}).strict(),a=>{
     const box=unique(G().BoundingBox?.all||[],a.box);if(box.parent instanceof G().Group)throw Error('Use a root-level authoring bounding box');
     const next=behaviorName(a.target as any,a.name as string,a.kind==='primary'?'hitbox':a.kind as any,a.name as string);
     const existing=G().Group.all.filter((g:any)=>g.name===next);if(existing.length)throw Error('Hitbox name already exists; edit it or choose another name');
     if(a.target==='modelengine'&&G().Group.all.some((g:any)=>(parseBehavior(g.name)?.id??g.name)===(parseBehavior(next)?.id??next)))throw Error('Hitbox would collide with an existing ModelEngine bone ID');
     let bounds={from:[...box.from],to:[...box.to]};if(a.target==='modelengine'&&a.kind!=='obb')bounds=squareBounds(bounds.from,bounds.to);
     if(bounds.to.some((n,i)=>n<=bounds.from[i]||n-bounds.from[i]>1024))throw Error('Hitbox dimensions must be in (0,1024]');
+    if(a.kind!=='primary'&&a.eye_height!==undefined)throw Error('eye_height applies only to a primary hitbox');
+    const eyeHeight=a.kind==='primary'?((a.eye_height as number|undefined)??bounds.to[1]*0.85):0;
+    if(a.kind==='primary'&&(!Number.isFinite(eyeHeight)||eyeHeight<=0||eyeHeight>1024))throw Error('Set a positive eye_height in (0,1024] for this primary hitbox');
     const elements:any[]=[],groups:any[]=[];
-    return edit('Convert engine hitbox',{elements,groups,outliner:true},()=>{const group=new (G().Group)({name:next,origin:[0,0,0]}).init();groups.push(group);const cube=new (G().Cube)({name:`${a.name}_shape`,...bounds}).addTo(group).init();elements.push(cube);return {target:a.target,bone:group.uuid,name:group.name,cube:cube.uuid,bounds,runtimeVerified:false};});
+    return edit('Convert engine hitbox',{elements,groups,outliner:true},()=>{const group=new (G().Group)({name:next,origin:[0,eyeHeight,0]}).init();groups.push(group);const cube=new (G().Cube)({name:`${a.name}_shape`,...bounds}).addTo(group).init();elements.push(cube);return {target:a.target,bone:group.uuid,name:group.name,cube:cube.uuid,bounds,...(a.kind==='primary'?{eyeHeight}:{}),runtimeVerified:false};});
   }),
   zodTool('mc_control_node','Create a Locator or NullObject with optional IK chain on a NullObject. BetterModel supports these; ModelEngine export needs separate verification.',z.object({name,kind:z.enum(['locator','null_object']),position:vec,parent:id.optional(),ik_source:id.optional(),ik_target:id.optional(),lock_rotation:z.boolean().default(false)}).strict(),a=>{
     project();const Class=a.kind==='locator'?G().Locator:G().NullObject;if(!Class)throw Error('Control node API unavailable');

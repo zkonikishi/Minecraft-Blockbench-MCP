@@ -31,7 +31,8 @@ try {
  await call('studio_redo');assert.equal((await call('mc_inspect_nodes',{nodes:['left_wing_tip']}))[0].parent,afterParent[0].parent);
  const box=await call('mc_bounding_box',{name:'body_bounds',elements:['torso']});
  await call('mc_bounding_box',{name:'body_bounds',box:box.uuid,from:[-5,0,-8],to:[5,18,8]});
- await call('mc_convert_hitbox',{box:box.uuid,target:'modelengine',kind:'primary',name:'main'});
+ const convertedHitbox=await call('mc_convert_hitbox',{box:box.uuid,target:'modelengine',kind:'primary',name:'main'});
+ assert.equal(convertedHitbox.eyeHeight,18*0.85);
  await call('mc_control_node',{name:'attack_point',kind:'locator',parent:'head',position:[0,20,-18]});
  const control=await call('mc_control_node',{name:'tail_control',kind:'null_object',position:[0,13,23],ik_source:'body',ik_target:'tail_2'});
  await call('mc_transform_keyframes',{animation:'idle',node:control.uuid,keys:[{time:0,channel:'position',value:['math.sin(query.anim_time*90)',0,0],interpolation:'bezier',bezier_left_value:[0,0,0],bezier_right_value:[0,0,0]}]});

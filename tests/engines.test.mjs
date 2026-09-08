@@ -39,7 +39,15 @@ test('three creature scaffolds have unique names, topologically ordered bones, v
     for(const g of plan.create_groups){assert(!names.has(g.name));if(g.parent)assert(names.has(g.parent));names.add(g.name);}
     for(const c of plan.create_cubes){assert(names.has(c.parent));assert(c.to.every((v,i)=>v>=c.from[i]));}
     assert(!plan.create_groups.find(g=>g.name==='hitbox').parent);
+    const eye=plan.create_groups.find(g=>g.name==='hitbox').origin[1];
+    assert.equal(eye,(type==='biped'?28:20)*2);assert(eye<plan.create_cubes.find(c=>c.name==='hitbox_shape').to[1]);
   }
+});
+test('primary ModelEngine eye-height warning does not apply to sub-hitboxes or BetterModel',()=>{
+ const m=modelFixture();m.outliner[0].name='hitbox';assert(codes(m,'modelengine').has('EYE_HEIGHT_NONPOSITIVE'));
+ assert(!codes(m,'bettermodel').has('EYE_HEIGHT_NONPOSITIVE'));
+ m.outliner[0].origin=[0,1.7,0];assert(!codes(m,'modelengine').has('EYE_HEIGHT_NONPOSITIVE'));
+ m.outliner[0].origin=[0,-1,0];assert(codes(m,'modelengine').has('EYE_HEIGHT_NONPOSITIVE'));
 });
 test('ModelEngine normalized IDs and cube-less tags are audited without imposing them on BetterModel',()=>{
   const m=modelFixture();m.outliner.push({uuid:'second',name:'h_body',children:[]});

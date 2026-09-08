@@ -51,7 +51,7 @@ async function connect(){
 G.Plugin.register(ID,{
   title:'Minecraft Blockbench MCP',author:'zkonikishi; Jason J. Gardner; SwagRee; sosadly',
   description:'Unified Minecraft creature authoring for BetterModel and ModelEngine. Desktop and Web.',
-  icon:'smart_toy',version:'0.1.0-alpha.4',variant:'both',min_version:'5.1.0',
+  icon:'smart_toy',version:'0.1.0-alpha.5',variant:'both',min_version:'5.1.0',
   onload(){
     loaded=true;
     for(const [key,options] of Object.entries({

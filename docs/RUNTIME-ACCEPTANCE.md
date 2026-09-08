@@ -1,4 +1,14 @@
-# Alpha 4 acceptance — 2026-09-08
+# Runtime acceptance — 2026-09-08
+
+## Alpha 5 follow-up
+
+Real import exposed a zero-eye-height defect in generated primary hitboxes. Alpha 5 sets a positive scaled scaffold pivot, accepts an explicit `eye_height` for primary box conversion, and warns about nonpositive ModelEngine primary pivots. Cube dimensions are preserved.
+
+33 regression tests and the complete 44-call Web workflow passed. The newly exported fixture was imported again into the same isolated Paper 26.2 / ModelEngine R4.1.1 server: the eye-height warning disappeared, the pack was generated, the native client received 16 item_display entities with no client error events, and the server stopped with exit code 0. The offline skin lookup and OSHI warnings remain unrelated environment findings.
+
+The existing JAR's plugin.yml reports R4.1.1; its manifest does not identify a Dev build. Searches of the available Minecraft, downloads and test directories found no identified Dev artifact or installed Minecraft launcher. The official marketplace browser request failed with ERR_CONNECTION_RESET. A specific Dev artifact and an accessible graphical Minecraft client are still required to close those two acceptance items. This follow-up does not claim graphical acceptance.
+
+## Alpha 4 baseline
 
 The installed Blockbench 5.1.6 desktop application sends `Origin: file://` for its WebSocket bridge. Alpha 3 rejected that origin before authentication. Alpha 4 accepts this exact local-file origin while retaining loopback Host checks, token authentication and rejection of untrusted HTTPS origins. Updating only the editor plugin does not fix an old running relay: restart the relay after updating its source.
 

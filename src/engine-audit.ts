@@ -152,6 +152,7 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
   }
   for(const state of ['idle','walk'])if(!animationNames.has(state))add('warning','STATE_MISSING',state,`No ${state} animation; add it or configure the engine state mapping`);
   for(const [id,g] of groups)if((g.name==='hitbox'||parseBehavior(g.name||'')?.behavior==='aabb')&&target!=='bettermodel') {
+    if(g.name==='hitbox'&&(!vector(g.origin)||g.origin[1]<=0))add('warning','EYE_HEIGHT_NONPOSITIVE',id,'The primary hitbox pivot Y sets ModelEngine eye height; use a positive value above the ground to avoid suffocation.');
     const cubes=elements.filter(e=>parents.get(e.uuid)===id&&(e.type||'cube')==='cube');
     if(cubes.length!==1)add('warning','HITBOX_COUNT',id,'Use one defining cube in the primary hitbox bone');
     for(const c of cubes)if(vector(c.from)&&vector(c.to)) {
