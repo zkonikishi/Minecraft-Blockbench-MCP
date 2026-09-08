@@ -15,10 +15,17 @@ test('malformed JSON shapes close only their unauthenticated socket',async()=>{
     assert.equal((await fetch(`http://127.0.0.1:${relay.port}/health`)).status,200);
   }}finally{await relay.close();}
 });
-async function editor(port,secret=token){
-  const ws=new WebSocket(`ws://127.0.0.1:${port}/bridge`,{origin:'https://web.blockbench.net'});
+async function editor(port,secret=token,origin='https://web.blockbench.net'){
+  const ws=new WebSocket(`ws://127.0.0.1:${port}/bridge`,{origin});
   await once(ws,'open');const response=Promise.race([once(ws,'message'),once(ws,'close')]);ws.send(JSON.stringify({type:'hello',token:secret,tools:catalogue}));await response;return ws;
 }
+test('installed Electron file origin authenticates but still rejects a wrong token',async()=>{
+  const relay=await startRelay({token,port:0});let ws;
+  try{
+    const bad=await editor(relay.port,'wrong','file://');assert.notEqual(bad.readyState,WebSocket.OPEN);assert.equal(relay.connected(),false);
+    ws=await editor(relay.port,token,'file://');assert.equal(relay.connected(),true);
+  }finally{ws?.terminate();await relay.close();}
+});
 test('real SDK initialize/list/call crosses authenticated HTTP + WebSocket and preserves image content',async()=>{
   const relay=await startRelay({token,port:0});let ws,client;
   try {

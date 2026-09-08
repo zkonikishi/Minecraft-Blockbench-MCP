@@ -2,7 +2,9 @@
 
 让 AI 在 **Blockbench 桌面版和 Web 版**中制作 Minecraft 生物模型、贴图与骨骼动画，主要面向 **BetterModel / ModelEngine**。
 
-**0.1.0-alpha.3 · GPL-3.0-only · 开发分支 Alpha**
+**0.1.0-alpha.4 · GPL-3.0-only · 开发分支 Alpha**
+
+Alpha 4 修复新版桌面版的 `file://` 连接来源。已实测桌面 218 个工具，以及 BetterModel 3.4.1 / ModelEngine R4.1.1 的模型导入、资源包和显示实体数据。详见[验证记录及边界](docs/RUNTIME-ACCEPTANCE.md)。升级后需重启本地 relay。
 
 这是三个开源 MCP 的实际代码整合：一个编辑器插件、一个本地 MCP 服务、一个共享执行队列。整合了近 200 个工具，数量和可用性以连接后的 `tools/list` 为准。
 

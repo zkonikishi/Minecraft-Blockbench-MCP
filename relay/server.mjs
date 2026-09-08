@@ -12,7 +12,7 @@ function equal(a,b){if(typeof a!=='string'||typeof b!=='string')return false;con
 export async function startRelay({token,port=39800,requestTimeout=120000,pluginFile}={}) {
   if(typeof token!=='string'||token.length<16)throw new Error('MINECRAFT_BLOCKBENCH_TOKEN must be at least 16 characters');
   if(!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid loopback port');
-  const origins=new Set(['https://web.blockbench.net','https://www.blockbench.net','https://blockbench.net','null']);
+  const origins=new Set(['https://web.blockbench.net','https://www.blockbench.net','https://blockbench.net','null','file://']);
   const trustedOrigin=origin=>!origin||origins.has(origin)||/^http:\/\/(127\.0\.0\.1|localhost)(?::\d+)?$/.test(origin);
   let bridge=null;
   let tools=[];
@@ -43,7 +43,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     if(req.url!=='/mcp'){res.writeHead(404).end();return;}
     if(!equal(req.headers.authorization,`Bearer ${token}`)){res.writeHead(401).end();return;}
     if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'}).end();return;}
-    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.3'},{capabilities:{tools:{}}});
+    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.4'},{capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
     const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
