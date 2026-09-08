@@ -2,11 +2,22 @@
 
 ## Alpha 5 follow-up
 
+### Accepted Beta server baseline
+
+The deployment target is the user's existing Beta server: **Paper 26.2 build 121 + ModelEngine R4.1.1**. The isolated acceptance run uses byte-identical copies of both artifacts, not an inferred Dev release. No additional Dev artifact is required for this target.
+
+On build 121, model import, resource-pack generation and 16 item_display spawn packets passed. The eye-height warning is absent, client error count is zero, and the isolated server exited normally with code 0. The live Web MCP was separately verified as Alpha 5 with 206 tools. This validates the editor/server integration; it does not claim a graphical Minecraft screenshot or the full Beta plugin composition.
+
+Artifact SHA-256:
+
+- Paper: `0de30efb024bc8b83c9c7d507d11802897ad8056b6110ec09fe1a91d126ccb54`
+- ModelEngine: `5764f1aaf4e1a1908f51b12cb84a4999f6c637dd11b744cf9b318da19be0f03a`
+
 Real import exposed a zero-eye-height defect in generated primary hitboxes. Alpha 5 sets a positive scaled scaffold pivot, accepts an explicit `eye_height` for primary box conversion, and warns about nonpositive ModelEngine primary pivots. Cube dimensions are preserved.
 
 33 regression tests and the complete 44-call Web workflow passed. The newly exported fixture was imported again into the same isolated Paper 26.2 / ModelEngine R4.1.1 server: the eye-height warning disappeared, the pack was generated, the native client received 16 item_display entities with no client error events, and the server stopped with exit code 0. The offline skin lookup and OSHI warnings remain unrelated environment findings.
 
-The existing JAR's plugin.yml reports R4.1.1; its manifest does not identify a Dev build. Searches of the available Minecraft, downloads and test directories found no identified Dev artifact or installed Minecraft launcher. The official marketplace browser request failed with ERR_CONNECTION_RESET. A specific Dev artifact and an accessible graphical Minecraft client are still required to close those two acceptance items. This follow-up does not claim graphical acceptance.
+The existing JAR's plugin.yml reports R4.1.1; its manifest does not identify a separate Dev build. The Beta artifact identity above is the acceptance target. Earlier searches for another Dev artifact are superseded by that explicit target clarification. Graphical client testing remains a distinct, unclaimed validation surface.
 
 ## Alpha 4 baseline
 
