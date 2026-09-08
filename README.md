@@ -2,7 +2,7 @@
 
 让 AI 在 **Blockbench 桌面版和 Web 版**中制作 Minecraft 生物模型、贴图与骨骼动画，主要面向 **BetterModel / ModelEngine**。
 
-**0.1.0-alpha.2 · GPL-3.0-only · 开发分支 Alpha**
+**0.1.0-alpha.3 · GPL-3.0-only · 开发分支 Alpha**
 
 这是三个开源 MCP 的实际代码整合：一个编辑器插件、一个本地 MCP 服务、一个共享执行队列。整合了近 200 个工具，数量和可用性以连接后的 `tools/list` 为准。
 
@@ -85,13 +85,17 @@ Web 安装同样使用“从文件加载”。Blockbench 不允许通过普通 H
 
 `target: "both"` 采用保守交集；它不会同时模拟两个引擎，也不会自动转换所有引擎特性。骨骼预算默认 64 只是提醒阈值。完整差异与依据见 [兼容性说明](docs/COMPATIBILITY.md)。
 
-Alpha 2 按官方 Wiki 扩展骨骼标签，并增加 `mc_modelengine_features`，区分已实现、仅供参考和待验收功能。Wiki 没有锁定具体 Dev 构建号，因此不宣称支持所有 Dev 特性；脚本关键帧和服务器 API 仍无专项实现。本轮新增功能经过模拟编辑器与静态测试，尚未补做真实编辑器/游戏内验收。
+Alpha 3 增加 **16 个工作流工具**：镜像动画与相位、原生碰撞盒转换、保持世界变换的换父级、Locator/NullObject 与 IK、Molang/Bezier 关键帧、ModelEngine 脚本关键帧、UV/FPS/Wrap、姿态预览、节点变换检查、AnimationCodec、Collections 与双引擎分别导出。完整参数、限制及调用示例见 [工作流工具](docs/WORKFLOW-TOOLS.md)。默认 Web 目录为 **206 个工具**。
+
+`mc_script_keyframes` 现在能读、写、删除 Instructions 时间轴中的 MM 技能与已记录的 MEG 命令；它保存脚本数据，不在编辑器执行服务器技能。Wiki 没有锁定具体 ModelEngine Dev 构建号，因此不宣称所有 Dev 构建均通过验收。
 
 ## 测试与当前边界
 
-本地 Windows 检查包含类型检查、整合/协议/回归测试，以及 **69 项选定上游测试**。这些测试覆盖本项目与选定上游范围，不代表每个工具已实机验证。
+本地 Windows 检查包含类型检查、**31 项整合/协议/回归测试**，以及 **69 项选定上游测试**。这些测试覆盖本项目与选定上游范围，不代表每个工具已实机验证。
 
 实际 Web 验证使用官方 Blockbench **5.1.6 源码构建的本地页面**：加载插件、认证连接、三个工具家族协作、创建翼龙草模、贴图与 UV、idle 关键帧、PNG 预览、内嵌纹理 `.bbmodel` 导出均通过。官网 `https://web.blockbench.net/` 在测试主机连接失败，因此尚未验证官网 HTTPS 页面的完整连接流程。
+
+Alpha 3 的 Web 验收另覆盖 44 次工具调用及截图：旋转父级下保持骨骼与子立方体变换、撤销/重做、镜像循环接缝、控制点与 IK、脚本增删、UV/FPS/Wrap、集合拆分与双引擎导出内容断言。插件提供加载时自动连接及重复加载时释放旧连接；从文件安装的 Web 插件仍受 Blockbench 本身的持久化行为限制。
 
 **桌面版实际运行、BetterModel / ModelEngine 服务器导入、资源包和 Minecraft 客户端效果尚未验收。** 静态检查成功不代表游戏内完全兼容。
 
@@ -100,6 +104,7 @@ npm run check
 npm run test:upstream
 # 连接专用测试编辑器后执行；会新建测试项目：
 npm run test:live -- --confirm-disposable
+node scripts/live-workflow.mjs --confirm-disposable
 ```
 
 `BLOCKBENCH_BUILD_DIR` 可指定构建输出目录；`BLOCKBENCH_TEST_DIR` 可指定测试产物目录。TypeScript 检查针对自有 TypeScript，原始上游通过适配构建及选定测试验证。详细结构见 [架构说明](docs/ARCHITECTURE.md)。

@@ -2,12 +2,16 @@ import { createRuntime } from './runtime.js';
 import { type ToolRegistry, errorResult } from './registry.js';
 const G=globalThis as any;
 const ID='minecraft_blockbench_mcp';
+// A plugin loaded again from a file must release its previous bridge and actions.
+const previousDrain=G[`${ID}_cleanup`]?.();
 let socket:WebSocket|null=null;
 let runtime:ToolRegistry|null=null;
-let draining:Promise<void>=Promise.resolve();
+let draining:Promise<void>=Promise.resolve(previousDrain);
 let generation=0;
 let loaded=false;
 const disposables:{delete:()=>void}[]=[];
+function cleanup(){loaded=false;disconnect();for(const item of disposables.splice(0))item.delete();return draining;}
+G[`${ID}_cleanup`]=cleanup;
 const setting=(key:string)=>G.settings?.[`${ID}_${key}`]?.value;
 function message(text:string){G.Blockbench?.showQuickMessage?.(text,4000);}
 function disconnect(){
@@ -47,23 +51,26 @@ async function connect(){
 G.Plugin.register(ID,{
   title:'Minecraft Blockbench MCP',author:'zkonikishi; Jason J. Gardner; SwagRee; sosadly',
   description:'Unified Minecraft creature authoring for BetterModel and ModelEngine. Desktop and Web.',
-  icon:'smart_toy',version:'0.1.0-alpha.2',variant:'both',min_version:'5.1.0',
+  icon:'smart_toy',version:'0.1.0-alpha.3',variant:'both',min_version:'5.1.0',
   onload(){
     loaded=true;
     for(const [key,options] of Object.entries({
       relay:{value:'ws://127.0.0.1:39800/bridge',type:'text',name:'Minecraft MCP bridge URL',description:'Local relay address. Reconnect after changing.'},
       token:{value:'',type:'password',name:'Minecraft MCP token',description:'Use the same secret token as your local relay. Reconnect after changing.'},
       advanced:{value:false,type:'toggle',name:'Minecraft MCP advanced tools',description:'Enable script execution and general UI/plugin operations. Reconnect after changing.'},
+      autoconnect:{value:true,type:'toggle',name:'Minecraft MCP auto connect',description:'Connect to your configured loopback relay when the plugin loads.'},
     })) {
       const id=`${ID}_${key}`;
-      if(!G.settings?.[id])disposables.push(new G.Setting(id,{category:'general',...options}));
+      if(!G.settings?.[id])new G.Setting(id,{category:'general',...options});
     }
     const add=(id:string,name:string,click:()=>void)=>{
+      G.BarItems?.[id]?.delete();
       const action=new G.Action(id,{name,icon:'smart_toy',click});disposables.push(action);G.MenuBar.addAction(action,'tools');
     };
     add(`${ID}_connect`,'Connect Minecraft MCP',()=>{void connect();});
     add(`${ID}_disconnect`,'Disconnect Minecraft MCP',()=>{disconnect();message('Minecraft MCP stopped');});
     message('Minecraft MCP loaded. Configure token in Settings, then Tools → Connect Minecraft MCP.');
+    if(setting('autoconnect')&&String(setting('token')||'').length>=16)void connect();
   },
-  onunload(){loaded=false;disconnect();for(const item of disposables.splice(0))item.delete();},
+  onunload(){cleanup();if(G[`${ID}_cleanup`]===cleanup)delete G[`${ID}_cleanup`];},
 });

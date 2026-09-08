@@ -34,7 +34,7 @@ export const MODELENGINE_CAPABILITIES={
   documentationUpdated:'2026-08-19',devBuild:null,runtimeVerified:false,
   boneBehaviors:{status:'authoring-and-static-checks',tool:'mc_set_bone_behavior',values:BEHAVIORS,limbTypes:LIMB_TYPES,source:MODELENGINE_WIKI},
   animationStates:{status:'slot-authoring',note:'Empty slots need keyframes; playback needs server verification'},
-  scriptableKeyframes:{status:'reference-only',source:'https://wiki.mythiccraft.io/modelengine/Modeling/Scriptable-Keyframes',note:'No dedicated MCP script-keyframe writer or server execution verification'},
+  scriptableKeyframes:{status:'authoring-and-static-checks',tool:'mc_script_keyframes',source:'https://wiki.mythiccraft.io/modelengine/Modeling/Scriptable-Keyframes',note:'Read/upsert/delete Instructions timeline; MM skills and documented MEG commands. Server execution not verified.'},
   serverApi:{status:'not-implemented',note:'No runtime mounting, player skins, custom renderers, skill execution or server deployment'},
   devCompatibility:{status:'not-build-certified',note:'A Wiki snapshot is not a Dev build changelog or proof of runtime support'},
 };

@@ -96,7 +96,12 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
   for(const e of elements.filter(object)) {
     const id=e.uuid||e.name;const type=e.type||'cube';
     if(type==='mesh')add('warning','MESH_PORTABILITY',id,'Use cubes for the shared baseline; mesh import/UV behavior must be checked in the exact engine version.');
-    else if(type!=='cube')add(target==='modelengine'?'warning':['armature','spline','billboard'].includes(type)?'error':'warning','ELEMENT_PORTABILITY',id,`Verify ${type} support in the target engine; this baseline uses cubes.`);
+    else if(type==='bounding_box')add('warning','AUTHORING_BOUNDING_BOX',id,'Convert this authoring box into an engine hitbox before variant export.');
+    else if(type!=='cube'&&!(target==='bettermodel'&&['locator','null_object'].includes(type)))add(target==='modelengine'?'warning':['armature','spline','billboard'].includes(type)?'error':'warning','ELEMENT_PORTABILITY',id,`Verify ${type} support in the target engine; this baseline uses cubes.`);
+    if(type==='null_object'&&(e.ik_source||e.ik_target)) {
+      if(!groups.has(e.ik_source)||!groups.has(e.ik_target))add('error','IK_REFERENCE',id,'IK source and target must reference existing bones');
+      else {let at=parents.get(e.ik_target),valid=false;for(let n=0;at&&n<129;n++,at=parents.get(at))if(at===e.ik_source){valid=true;break;}if(!valid)add('error','IK_CHAIN',id,'IK target must descend from source');}
+    }
     if(type!=='cube')continue;
     if(!parents.has(e.uuid))add('error','UNGROUPED_CUBE',id,'Every rendered cube must belong to a bone');
     if(!vector(e.from)||!vector(e.to)){add('error','CUBE_COORDINATES',id,'Cube bounds must contain finite XYZ values');continue;}
@@ -118,6 +123,7 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
   }
   if(!textures.length)add('warning','TEXTURE_MISSING','textures','No texture sheets are present');
   for(const [i,t] of textures.entries())if(typeof t.source!=='string'||!t.source.startsWith('data:image/png;base64,'))add('warning','TEXTURE_EXTERNAL',`textures.${i}`,'Embed a PNG texture for a portable .bbmodel');
+  for(const [i,t] of textures.entries())if(t.wrap_mode&&t.wrap_mode!=='limited')add('warning','TEXTURE_WRAP',`textures.${i}`,'Texture repeat/clamp preview is not a guarantee of Minecraft atlas behavior');
   const animationNames=new Set<string>();
   for(const [i,a] of animations.entries()) {
     if(!object(a)){add('error','ANIMATION_INVALID',`animations.${i}`,'Expected animation object');continue;}
@@ -128,8 +134,12 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
     if(target!=='bettermodel'&&a.name==='death'&&a.loop!=='hold')add('warning','DEATH_HOLD',a.name,'ModelEngine death normally holds the final frame');
     let count=0;
     for(const [id,animator] of Object.entries(a.animators||{}) as [string,Obj][]) {
-      if(id==='effects'||animator.type==='effect'){add('warning','EFFECTS_PORTABILITY',a.name,'Timeline effects/scripts require engine-specific integration');continue;}
-      const bone=groups.get(id);
+      if(id==='effects'||animator.type==='effect'){
+        if(animator.keyframes?.length)add('warning','EFFECTS_PORTABILITY',a.name,'Timeline effects/scripts require engine-specific integration');
+        for(const k of animator.keyframes||[])if(typeof k.time!=='number'||!Number.isFinite(k.time)||k.time<0||k.time>a.length)add('error','KEYFRAME_TIME',a.name,'Effect keyframe time is outside animation duration');
+        continue;
+      }
+      const bone=groups.get(id)||elementMap.get(id);
       if(!bone)add('error','ANIMATOR_BONE',`${a.name}.${id}`,'Animation references a missing bone');
       if(target!=='bettermodel'&&bone?.name==='hitbox'&&animator.keyframes?.length)add('error','ANIMATED_HITBOX',a.name,'ModelEngine removes hitbox; animate a visual bone instead');
       for(const k of animator.keyframes||[]) {
