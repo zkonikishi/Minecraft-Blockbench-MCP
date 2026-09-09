@@ -1,126 +1,149 @@
 # Minecraft Blockbench MCP
 
-让 AI 在 **Blockbench 桌面版和 Web 版**中制作 Minecraft 生物模型、贴图与骨骼动画，主要面向 **BetterModel / ModelEngine**。
+让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，并对接 **BetterModel、ModelEngine、CraftEngine**。
 
-**0.1.0-alpha.8 · GPL-3.0-only · 开发分支 Alpha**
+**Alpha 8 · GPL-3.0-only · 开发分支 `Alpha`**
 
-Alpha 8 新增 [CraftEngine 物品蓝图、家具引用和发包配置接口](docs/CRAFTENGINE.md)；Alpha 7 新增原生 CEM/JEM 几何导入（见 [CEM 导入说明](docs/CEM-IMPORT.md)）；Alpha 6 新增原生 JSON 模型导入，修复断线重连、大模型导出、禁用面保留和动画截图取景，并校验 ModelEngine 的 animation.override。详见[更新说明](docs/ALPHA-6.md)与[验证记录及边界](docs/RUNTIME-ACCEPTANCE.md)。升级时更新插件并重启本地 relay。
+[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 8 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.8) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
-这是三个开源 MCP 的实际代码整合：一个编辑器插件、一个本地 MCP 服务、一个共享执行队列。整合了近 200 个工具，数量和可用性以连接后的 `tools/list` 为准。
+一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 8 已实测 **211 个默认 Web 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
 
-| 工具前缀 | 来源与用途 |
+## 可以做什么
+
+| 方向 | 当前能力 |
 | --- | --- |
-| `craft_*` | [SwagRee/BlockBenchMCP](https://github.com/SwagRee/BlockBenchMCP)：批量几何、UV 排布、像素绘制、多视角预览 |
-| `studio_*` | [jasonjgardner/blockbench-mcp-plugin](https://github.com/jasonjgardner/blockbench-mcp-plugin)：建模、网格、材质、画笔、相机、动画、历史 |
-| `anim_*` | [sosadly/blockbench-mcp](https://github.com/sosadly/blockbench-mcp)：关键帧、动画、纹理与编辑器操作 |
-| `mc_*` | 本项目：双引擎规范、生物骨架、状态动画槽、骨骼标签、兼容性检查、内嵌纹理导出 |
+| 生物建模 | 立方体与网格编辑、多层骨骼、翅膀、尾巴、下颚、挂点和可编辑骨架草模 |
+| 贴图与预览 | UV 排布、像素绘制、多视角截图、按当前动画姿态取景 |
+| 骨骼动画 | 关键帧、镜像与相位、Molang/Bezier 数据、IK 控制点、姿态预览 |
+| BetterModel / ModelEngine | 引擎规范检查、碰撞箱与眼高、骨骼标签、分别导出内嵌贴图的 `.bbmodel` |
+| CraftEngine | 静态物品与家具蓝图、动态家具的引擎模型引用、资源包合并配置方案 |
+| 模型导入 | 原生 `.bbmodel` JSON 导入；OptiFine CEM/JEM 几何与 UV 导入，保留已有工程 |
+| 连接与大文件 | 自动重连、共享执行队列、128 MiB 桥接响应上限 |
 
-复杂生物可以组合多层骨骼、翅膀、尾巴、下颚、分部贴图和多段动作。骨架模板只是可编辑草模；动画槽也需要继续编写关键帧。游戏内寻路、战斗逻辑和技能触发由服务器插件负责。
+骨架模板是制作起点，动画槽需要写入真实关键帧。寻路、战斗 AI 和技能逻辑仍由游戏或服务器插件负责。
 
-## 安装
+## 快速开始
 
-需要 **Node.js 22+**、**Blockbench 5.1+**，以及支持 Streamable HTTP MCP 和 Bearer 请求头的本地 AI 客户端。Web 版同样需要本机运行 Node 服务。
+需要 **Node.js 22+**、**Blockbench 5.1+**，以及支持 **Streamable HTTP MCP + Bearer 请求头**的 AI 客户端。Web 编辑器同样需要本机运行 MCP 服务。
+
+### 1. 安装并启动服务
 
 ```powershell
-git clone https://github.com/zkonikishi/Minecraft-Blockbench-MCP.git
+git clone --branch Alpha https://github.com/zkonikishi/Minecraft-Blockbench-MCP.git
 cd Minecraft-Blockbench-MCP
-npm ci --ignore-scripts
-npm run build
+npm.cmd ci --ignore-scripts
+npm.cmd run build
+Copy-Item .env.example .env
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-将生成的随机值作为自己的 token。复制 `.env.example` 为 `.env`，填入 token，然后启动：
+将生成的随机值填入 `.env` 的 `MINECRAFT_BLOCKBENCH_TOKEN`，然后启动：
 
 ```powershell
-npm start
+npm.cmd start
 ```
 
-1. 在 Blockbench 打开 **文件 → 插件 → 从文件加载插件**，选择 `dist/minecraft_blockbench_mcp.js`。发布包中的同名文件也可直接使用。
-2. 在 **设置 → 常规**中找到 **Minecraft MCP token**，填入与 `.env` 相同的值。
-3. 保持 **Minecraft MCP bridge URL** 为 `ws://127.0.0.1:39800/bridge`。
-4. 点击 **工具 → Connect Minecraft MCP**，看到 connected 后再连接 AI 客户端。
-5. 升级前先断开连接并卸载旧插件，再加载新文件。不要重复加载同一个插件。
+也可使用发布页的运行 ZIP：解压、安装依赖并配置 `.env` 后启动，包内已有编译好的 `dist/minecraft_blockbench_mcp.js`。单独下载插件 JS 不能代替本地服务。
 
-Web 安装同样使用“从文件加载”。Blockbench 不允许通过普通 HTTP URL 安装插件，即使 URL 指向本机。官方 Web 页面连接本机时，按浏览器提示允许该页面的本地网络连接；若浏览器阻止连接，查看开发者日志或使用桌面版。
+### 2. 连接 Blockbench
 
-在 AI 客户端配置中填写以下连接信息。不同客户端的字段名称可能不同，不要把示例 token 当作真实密钥：
+1. 打开 **文件 → 插件 → 从文件加载插件**，选择 `dist/minecraft_blockbench_mcp.js`。
+2. 在设置中找到 **Minecraft MCP token**，填入与服务端相同的值。
+3. 保持 bridge URL 为 `ws://127.0.0.1:39800/bridge`。
+4. 点击 **工具 → Connect Minecraft MCP**。
+
+Web 版使用相同的文件加载方式。Blockbench 的插件 URL 安装器不接受普通 HTTP 地址；文件安装的插件也不会自动跨页面重载持久保存。本地 Web 主机可参考[持久加载与重连说明](docs/LOCAL-WEB-LIFECYCLE.md)。
+
+升级时更新插件和 relay 源码，并重启 relay；已有 token 可继续使用。修改工具设置后重新连接并刷新客户端工具列表。
+
+### 3. 配置 AI 客户端
+
+以下是连接信息，不同客户端的配置字段可能不同：
 
 ```json
 {
   "url": "http://127.0.0.1:39800/mcp",
-  "headers": { "Authorization": "Bearer YOUR_RANDOM_TOKEN" }
+  "headers": {
+    "Authorization": "Bearer YOUR_RANDOM_TOKEN"
+  }
 }
 ```
 
-服务仅监听本机回环地址。远程云端客户端不能直接访问你电脑的 `127.0.0.1`。同一服务只连接一个 Blockbench 窗口；多个窗口请使用不同端口和 token。断线或工具配置变更后重新连接，并刷新客户端的工具列表。
+连接后调用 `mc_status` 检查版本、当前工程和工具数量。服务仅监听本机回环地址，云端客户端无法直接访问你电脑的 `127.0.0.1`。一个 relay 同时连接一个编辑器窗口。
 
-## 制作流程
+## 三条制作流程
 
-先让 AI 调用 `mc_get_workflow` 和 `mc_engine_profile`，再开始编辑。例如：
+### BetterModel / ModelEngine 生物
 
-> 为 BetterModel 和 ModelEngine 制作一个朝向 -Z 的翼龙草模。创建独立 Generic 项目，使用 mc_scaffold_creature 生成 dragon 骨架。细化翅膀、尾巴和下颚，排布面 UV、绘制贴图，给 idle 和 walk 写入真实骨骼关键帧。用多角度截图检查轮廓。最后运行 mc_audit_model，修复错误，再用 mc_export_bbmodel 导出内嵌纹理的文件。不要把空动画槽当作完成的动画。
+先调用 `mc_get_workflow`、`mc_engine_profile`，再创建或导入工程：
 
-主要操作顺序：
+1. `mc_create_project` / `mc_import_bbmodel` → 建模与贴图。
+2. 编写骨骼动画，使用预览工具检查动作。
+3. `mc_audit_model` → 修复目标引擎的兼容性问题。
+4. `mc_export_bbmodel` / `mc_export_engine_variants` → 导出。
 
-1. `mc_create_project` → `mc_scaffold_creature`，或自行创建完整几何。
-2. `craft_apply_geometry_batch` / `studio_place_cube` 等工具细化。
-3. `craft_ensure_texture` → `craft_pack_box_uv` → 绘制工具。
-4. `mc_create_animation_set` → `anim_add_keyframes` / `craft_upsert_animation`。
-5. `craft_capture_views` → `mc_audit_model`。
-6. `mc_export_bbmodel` 返回模型 JSON；`download: true` 请求编辑器下载文件。
+`target: "both"` 使用保守的共同规则，不表示所有引擎特性都能互转。ModelEngine 的 `animation.override` 必须是布尔值；校验会报告错误，不会擅自补写。详见[兼容性说明](docs/COMPATIBILITY.md)与[工作流工具](docs/WORKFLOW-TOOLS.md)。
 
-工具参数应以 `tools/list` 返回的 schema 为准。上游说明中的裸工具名称对应本项目的前缀名称。`craft_upsert_animation` 的 `replace: true` 会替换整段动画，请先读取已有内容。
+### CraftEngine 物品与家具
 
-## 引擎适配范围
+调用 `mc_craftengine_profile` 查看范围，再用 `mc_craftengine_export` 生成 CE 内容包文件清单：
 
-| 能力 | BetterModel | ModelEngine |
-| --- | --- | --- |
-| Generic `.bbmodel`、骨骼、立方体、贴图、关键帧 | 共同工作流 | 共同工作流 |
-| idle / walk / spawn / death | 创建缺失槽并保留已有动画 | 创建缺失槽并保留已有动画 |
-| 引擎独有状态 | idle_fly / walk_fly / jump | jump_start / jump / jump_end |
-| 主 hitbox、b_ / ob_ 子碰撞箱 | 标签助手与检查 | 标签助手与检查 |
-| head / inherited head / mount / seat | 未提供同名映射 | h_ / hi_ / mount / p_ |
-| 物品挂点、名字牌、牵引点、分段/尾巴、玩家肢体 | 未提供同名映射 | 标签助手及几何/ID 检查 |
-| Bezier | 规范允许 | 检查提示线性回退 |
-| Armature / spline / billboard | 检查报错 | 不作为共同基线 |
-| 导入服务器、资源包生成、游戏内 AI | 需要独立验收 | 需要独立验收 |
+- 静态模型使用 Java Block/Item 工程、逐面 UV 和内嵌 PNG，由 CE 蓝图功能生成资源包模型。
+- 动态家具引用已安装的 BetterModel / ModelEngine 模型，动画仍由对应引擎负责。
+- `mc_craftengine_pack_plan` 生成保留已有条目的合并方案，沿用 CE 的发包流程。
 
-`target: "both"` 采用保守交集；它不会同时模拟两个引擎，也不会自动转换所有引擎特性。骨骼预算默认 64 只是提醒阈值。完整差异与依据见 [兼容性说明](docs/COMPATIBILITY.md)。
+发布包附带内容包安装脚本，支持预检并拒绝覆盖已有目录。MCP 不会自动上传资源包或修改服务器凭据。完整参数、安装与重载方法见 [CraftEngine 使用说明](docs/CRAFTENGINE.md)。
 
-Alpha 3 增加 **16 个工作流工具**：镜像动画与相位、原生碰撞盒转换、保持世界变换的换父级、Locator/NullObject 与 IK、Molang/Bezier 关键帧、ModelEngine 脚本关键帧、UV/FPS/Wrap、姿态预览、节点变换检查、AnimationCodec、Collections 与双引擎分别导出。完整参数、限制及调用示例见 [工作流工具](docs/WORKFLOW-TOOLS.md)。默认 Web 目录为 **211 个工具**。
+### 已有模型导入
 
-`mc_script_keyframes` 现在能读、写、删除 Instructions 时间轴中的 MM 技能与已记录的 MEG 命令；它保存脚本数据，不在编辑器执行服务器技能。Wiki 没有锁定具体 ModelEngine Dev 构建号，因此不宣称所有 Dev 构建均通过验收。
+- `mc_import_bbmodel`：传入解析后的模型 JSON，通过原生 codec 新建工程，要求内嵌 PNG。[参数与限制](docs/JSON-IMPORT.md)
+- `mc_import_cem`：传入 JEM JSON，恢复原生几何与 UV，移除纹理路径并拒绝外部 JPM 引用；不转换 CEM 动画表达式。[参数与限制](docs/CEM-IMPORT.md)
 
-## 测试与当前边界
+工具参数以 `tools/list` 返回的 schema 为准。编辑期间避免切换工程；长操作超时后应先检查编辑器状态再决定是否重试。
 
-本地 Windows 检查包含类型检查、**31 项整合/协议/回归测试**，以及 **69 项选定上游测试**。这些测试覆盖本项目与选定上游范围，不代表每个工具已实机验证。
+## 验证情况
 
-实际 Web 验证使用官方 Blockbench **5.1.6 源码构建的本地页面**：加载插件、认证连接、三个工具家族协作、创建翼龙草模、贴图与 UV、idle 关键帧、PNG 预览、内嵌纹理 `.bbmodel` 导出均通过。官网 `https://web.blockbench.net/` 在测试主机连接失败，因此尚未验证官网 HTTPS 页面的完整连接流程。
+| 范围 | 已完成的验证 |
+| --- | --- |
+| Alpha 8 自动检查 | 类型检查、47 项整合/协议/回归测试、构建通过 |
+| Alpha 8 本地 Web | 真实 SDK 连接、211 个工具、CE 导出与合并方案调用，当前工程保持不变 |
+| CraftEngine 26.8.2 | 使用与 Beta 相同的 Paper 26.2-121 / CE 版本，在隔离环境完成内容加载、资源包生成、验证与压缩 |
+| 桌面 Blockbench 5.1.6 | 先前版本已通过真实连接与 44 次制作流程调用 |
+| BetterModel 3.4.1 / ModelEngine R4.1.1 | 先前隔离测试已通过模型导入、资源包生成与显示实体数据验证 |
 
-Alpha 3 的 Web 验收另覆盖 44 次工具调用及截图：旋转父级下保持骨骼与子立方体变换、撤销/重做、镜像循环接缝、控制点与 IK、脚本增删、UV/FPS/Wrap、集合拆分与双引擎导出内容断言。插件提供加载时自动连接及重复加载时释放旧连接；从文件安装的 Web 插件仍受 Blockbench 本身的持久化行为限制。
+这些记录不代表每个工具、每个模型或未来引擎版本均已验收。**图形 Minecraft 客户端效果、Alpha 8 的实际 Beta 上传，以及 CE 动态家具的外部引擎渲染尚未完成本次验收。** 详见[引擎运行记录](docs/RUNTIME-ACCEPTANCE.md)与[CE 验收范围](docs/CRAFTENGINE.md#acceptance-and-boundaries)。
 
-**桌面版实际运行、BetterModel / ModelEngine 服务器导入、资源包和 Minecraft 客户端效果尚未验收。** 静态检查成功不代表游戏内完全兼容。
+## 开发与工具来源
 
 ```powershell
-npm run check
-npm run test:upstream
-# 连接专用测试编辑器后执行；会新建测试项目：
-npm run test:live -- --confirm-disposable
+npm.cmd run check
+npm.cmd run test:upstream
+# 以下操作会在专用测试编辑器中新建工程：
+npm.cmd run test:live -- --confirm-disposable
 node scripts/live-workflow.mjs --confirm-disposable
 ```
 
-`BLOCKBENCH_BUILD_DIR` 可指定构建输出目录；`BLOCKBENCH_TEST_DIR` 可指定测试产物目录。TypeScript 检查针对自有 TypeScript，原始上游通过适配构建及选定测试验证。详细结构见 [架构说明](docs/ARCHITECTURE.md)。
+`BLOCKBENCH_BUILD_DIR` 与 `BLOCKBENCH_TEST_DIR` 可分别指定构建及测试产物目录。原始上游快照由 `upstream-lock.json` 锁定，适配代码位于 `src/` 和 `scripts/`。详见[架构说明](docs/ARCHITECTURE.md)。
 
-高级脚本执行、通用 UI 控制与插件管理默认关闭；需要在编辑器设置启用并重新连接。启用后获得的是本机编辑器权限，不是受限沙箱。工具调用串行执行；长操作超时后可能继续运行，应先检查编辑器再决定是否重试。编辑期间避免手动切换项目。
+| 工具前缀 | 来源 |
+| --- | --- |
+| `craft_*` | [SwagRee/BlockBenchMCP](https://github.com/SwagRee/BlockBenchMCP) |
+| `studio_*` | [jasonjgardner/blockbench-mcp-plugin](https://github.com/jasonjgardner/blockbench-mcp-plugin) |
+| `anim_*` | [sosadly/blockbench-mcp](https://github.com/sosadly/blockbench-mcp) |
+| `mc_*` | 本项目的 Minecraft 工作流、引擎适配、导入与导出工具 |
 
-## 来源与许可证
+高级脚本执行、通用 UI 控制与插件管理默认关闭，需在本地编辑器设置中启用。启用后获得的是本机编辑器权限，不是受限沙箱。
 
-采用 GPL-3.0-only，保留三个上游的作者和许可信息。原始文件由 `upstream-lock.json` 锁定 SHA-256；适配修改位于 `src/` 和 `scripts/`，原始快照保持不变。分发插件时请一并提供许可证、第三方通知和对应源代码。
+## 后续计划
 
-见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 和 [LICENSE](LICENSE)。本项目并非 Blockbench、BetterModel 或 ModelEngine 官方产品。
+**YSM / 时装工坊（AM/AW）离线模型恢复已列入计划，尚未实现、尚未验证。** 目标是独立离线转换核心、CLI、恢复报告及可选 Blockbench 导入；需要先完成版本样本、格式和许可核实，不承诺无损还原。见[开发路线](docs/ROADMAP.md)。
+
+## 许可证
+
+**GPL-3.0-only**。保留三个上游的作者与许可信息，分发时请同时提供对应源码、许可证与[第三方通知](THIRD_PARTY_NOTICES.md)。详见 [LICENSE](LICENSE)。
+
+本项目并非 Blockbench、BetterModel、ModelEngine 或 CraftEngine 官方产品。
 
 ---
 
-**English:** A unified local MCP for Minecraft creature authoring in Blockbench desktop and Web, targeting BetterModel and ModelEngine. It integrates the original SwagRee, Jason J. Gardner and sosadly tool implementations with a serialized runtime, engine profiles, creature scaffolds, static audits and embedded-texture `.bbmodel` export. Install dependencies, build, start the loopback relay with a random token, load the plugin file, configure the same token in Blockbench and connect your MCP client. Alpha: local official-source Web workflow tested; desktop and Minecraft engine runtime acceptance remain pending.
-
-后续功能规划见[开发路线](docs/ROADMAP.md)。
+**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. Alpha 8 has 211 verified default Web tools and 47 passing regression tests. Engine and resource-pack acceptance is documented separately from graphical client validation. Offline YSM / Armourer's Workshop recovery is planned, not implemented.
