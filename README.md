@@ -2,9 +2,9 @@
 
 让 AI 在 **Blockbench 桌面版和 Web 版**中制作 Minecraft 生物模型、贴图与骨骼动画，主要面向 **BetterModel / ModelEngine**。
 
-**0.1.0-alpha.7 · GPL-3.0-only · 开发分支 Alpha**
+**0.1.0-alpha.8 · GPL-3.0-only · 开发分支 Alpha**
 
-Alpha 7 新增原生 CEM/JEM 几何导入（见 [CEM 导入说明](docs/CEM-IMPORT.md)）；Alpha 6 新增原生 JSON 模型导入，修复断线重连、大模型导出、禁用面保留和动画截图取景，并校验 ModelEngine 的 animation.override。详见[更新说明](docs/ALPHA-6.md)与[验证记录及边界](docs/RUNTIME-ACCEPTANCE.md)。升级时更新插件并重启本地 relay。
+Alpha 8 新增 [CraftEngine 物品蓝图、家具引用和发包配置接口](docs/CRAFTENGINE.md)；Alpha 7 新增原生 CEM/JEM 几何导入（见 [CEM 导入说明](docs/CEM-IMPORT.md)）；Alpha 6 新增原生 JSON 模型导入，修复断线重连、大模型导出、禁用面保留和动画截图取景，并校验 ModelEngine 的 animation.override。详见[更新说明](docs/ALPHA-6.md)与[验证记录及边界](docs/RUNTIME-ACCEPTANCE.md)。升级时更新插件并重启本地 relay。
 
 这是三个开源 MCP 的实际代码整合：一个编辑器插件、一个本地 MCP 服务、一个共享执行队列。整合了近 200 个工具，数量和可用性以连接后的 `tools/list` 为准。
 
@@ -87,7 +87,7 @@ Web 安装同样使用“从文件加载”。Blockbench 不允许通过普通 H
 
 `target: "both"` 采用保守交集；它不会同时模拟两个引擎，也不会自动转换所有引擎特性。骨骼预算默认 64 只是提醒阈值。完整差异与依据见 [兼容性说明](docs/COMPATIBILITY.md)。
 
-Alpha 3 增加 **16 个工作流工具**：镜像动画与相位、原生碰撞盒转换、保持世界变换的换父级、Locator/NullObject 与 IK、Molang/Bezier 关键帧、ModelEngine 脚本关键帧、UV/FPS/Wrap、姿态预览、节点变换检查、AnimationCodec、Collections 与双引擎分别导出。完整参数、限制及调用示例见 [工作流工具](docs/WORKFLOW-TOOLS.md)。默认 Web 目录为 **208 个工具**。
+Alpha 3 增加 **16 个工作流工具**：镜像动画与相位、原生碰撞盒转换、保持世界变换的换父级、Locator/NullObject 与 IK、Molang/Bezier 关键帧、ModelEngine 脚本关键帧、UV/FPS/Wrap、姿态预览、节点变换检查、AnimationCodec、Collections 与双引擎分别导出。完整参数、限制及调用示例见 [工作流工具](docs/WORKFLOW-TOOLS.md)。默认 Web 目录为 **211 个工具**。
 
 `mc_script_keyframes` 现在能读、写、删除 Instructions 时间轴中的 MM 技能与已记录的 MEG 命令；它保存脚本数据，不在编辑器执行服务器技能。Wiki 没有锁定具体 ModelEngine Dev 构建号，因此不宣称所有 Dev 构建均通过验收。
 
