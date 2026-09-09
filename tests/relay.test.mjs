@@ -7,6 +7,17 @@ import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/st
 import {startRelay} from '../relay/server.mjs';
 const token='test-only-token-not-a-deployed-secret';
 const catalogue=[{name:'test_tool',description:'mock host probe',inputSchema:{type:'object'}}];
+test('SDK preserves exports exceeding the old 16 MiB bridge limit',async()=>{
+ const relay=await startRelay({token,port:0});let ws,client;
+ const payload='x'.repeat(17*1024*1024);
+ try{
+  ws=await editor(relay.port);
+  ws.on('message',raw=>{const msg=JSON.parse(raw);if(msg.type==='call')ws.send(JSON.stringify({type:'result',id:msg.id,result:{content:[{type:'text',text:payload}]}}));});
+  client=new Client({name:'large-export-test',version:'1'});
+  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${relay.port}/mcp`),{requestInit:{headers:{Authorization:`Bearer ${token}`}}}));
+  const result=await client.callTool({name:'test_tool',arguments:{}});assert.equal(result.content[0].text,payload);assert.equal(relay.connected(),true);
+ }finally{await client?.close();ws?.terminate();await relay.close();}
+});
 test('malformed JSON shapes close only their unauthenticated socket',async()=>{
   const relay=await startRelay({token,port:0});
   try{for(const value of [null,[],42,{type:'hello',token:{},tools:[]}]){

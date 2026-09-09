@@ -22,6 +22,46 @@ test('IK references, unsupported elements, effect timing and texture wrap have s
  m.animations[0].animators.control={type:'null_object',keyframes:[{time:0,channel:'position'}]};m.animations[0].animators.effects={type:'effect',keyframes:[{time:2}]};m.textures[0].wrap_mode='repeat';
  const r=auditModel(m,'bettermodel'),codes=r.findings.map(f=>f.code);assert(codes.includes('IK_REFERENCE'));assert(codes.includes('KEYFRAME_TIME'));assert(codes.includes('TEXTURE_WRAP'));assert(!codes.includes('ANIMATOR_BONE'));assert(!codes.includes('ELEMENT_PORTABILITY'));
 });
+test('JSON import validates before creating a project and passes UUIDs and keys unchanged to native codec',async()=>{
+ const keys=['Project','Formats','Format','Codecs','Outliner','Texture','Animation'];const saved=Object.fromEntries(keys.map(k=>[k,globalThis[k]]));let calls=0,received;
+ const old={uuid:'old',select(){globalThis.Project=this;}};
+ const model={meta:{model_format:'free'},elements:[{uuid:'cube'}],outliner:['cube'],textures:[{uuid:'texture',source:'data:image/png;base64,aGVsbG8=',path:'D:/should-not-read.png'}],animations:[{uuid:'anim',animators:{bone:{keyframes:[{uuid:'key',time:.25,data_points:[{x:1}]}]}}}]};
+ try{
+  Object.assign(globalThis,{Project:old,Formats:{free:{}},Format:{id:'free'},Codecs:{project:{load(m,f){calls++;received=m;assert.equal(f.no_file,true);globalThis.Project={uuid:'new',name:'test'};}}}});
+  const runtime=createRuntime();
+  assert((await runtime.call('mc_import_bbmodel',{model:{...model,textures:[{source:'https://external/image.png'}]}})).isError);assert.equal(calls,0);assert.equal(globalThis.Project,old);
+  const result=await runtime.call('mc_import_bbmodel',{model,name:'test'});assert(!result.isError,JSON.stringify(result));assert.equal(calls,1);assert.deepEqual(received.animations,model.animations);assert.equal(received.elements[0].uuid,'cube');assert.equal(received.textures[0].path,undefined);assert(model.textures[0].path);
+  globalThis.Project=old;globalThis.Codecs.project.load=()=>{globalThis.Project={uuid:'partial'};throw Error('parse failed');};assert((await runtime.call('mc_import_bbmodel',{model})).isError);assert.equal(globalThis.Project,old);
+ }finally{for(const k of keys){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}}
+});
+test('explicit disabled faces survive adapter, native-style serialization, both variants and JSON import',async()=>{
+ const {applyFaces}=await import(new URL('faces.mjs',new URL(`file:///${process.env.BLOCKBENCH_TEST_DIR.replaceAll('\\','/')}/`)));
+ const names=['Project','Texture','Codecs','Formats','Format','Outliner','Animation'];const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try{
+  globalThis.Texture={all:[{uuid:'skin-uuid',name:'skin'}]};globalThis.Project={uuid:'old'};
+  const cube={faces:{north:{texture:false},south:{texture:false},east:{texture:false},west:{texture:'skin-uuid'}}};
+  applyFaces(cube,{north:{texture:null},south:{texture:false},east:{texture:'skin'},west:{uv:[0,0,1,1]}});
+  assert.equal(cube.faces.north.texture,null);assert.equal(cube.faces.south.texture,false);assert.equal(cube.faces.east.texture,'skin-uuid');assert.equal(cube.faces.west.texture,'skin-uuid');
+  // Native Face.getSaveCopy preserves null, omits false, indexes actual textures.
+  const faces=Object.fromEntries(Object.entries(cube.faces).map(([k,f])=>[k,{uv:[0,0,1,1],texture:f.texture===null?null:f.texture===false?undefined:0}]));
+  const model={meta:{model_format:'free'},name:'face_test',elements:[{uuid:'cube',from:[0,0,0],to:[1,1,1],faces}],outliner:['cube'],textures:[],animations:[]};
+  globalThis.Codecs={project:{compile:()=>JSON.parse(JSON.stringify(model)),load(m){globalThis.Project={uuid:'imported',name:'face_test'};assert.equal(m.elements[0].faces.north.texture,null);assert(!Object.hasOwn(m.elements[0].faces.south,'texture'));assert.equal(m.elements[0].faces.east.texture,0);}}};
+  globalThis.Formats={free:{}};globalThis.Format={id:'free'};globalThis.Outliner={elements:[]};globalThis.Animation={all:[]};
+  const runtime=createRuntime();const result=await runtime.call('mc_export_engine_variants',{});assert(!result.isError,JSON.stringify(result));
+  for(const variant of JSON.parse(result.content[0].text).variants){assert.equal(variant.model.elements[0].faces.north.texture,null);assert(!Object.hasOwn(variant.model.elements[0].faces.south,'texture'));assert(!(await runtime.call('mc_import_bbmodel',{model:variant.model})).isError);}
+ }finally{for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}}
+});
+test('capture fits posed world vertices and excludes hidden hitbox and hidden scene parents',async()=>{
+ const {framingPreset}=await import(new URL('framing.mjs',new URL(`file:///${process.env.BLOCKBENCH_TEST_DIR.replaceAll('\\','/')}/`)));
+ const saved=globalThis.Cube;let updates=0;
+ const make=(offset,visible=true)=>({visibility:visible,parent:'root',mesh:{visible:true,parent:null,geometry:{attributes:{position:{count:2,getX:i=>i?1:-1,getY:i=>i?2:-2,getZ:i=>i?1:-1}}},matrixWorld:{elements:[0,2,0,0,-3,0,0,0,0,0,4,0,offset,20,30,1]},updateWorldMatrix(){updates++;}}});
+ try{
+  const body=make(200),hitbox=make(10000,false),hidden=make(-10000);hidden.mesh.parent={visible:false};
+  const collapsed=make(30000);collapsed.mesh.matrixWorld.elements=[1e-5,0,0,0,0,1e-5,0,0,0,0,1e-5,0,0,308.4,16.704,1];
+  globalThis.Cube={all:[body,hitbox,hidden,collapsed]};const frame=framingPreset('iso');assert.deepEqual(frame.preset.target,[200,20,30]);assert(frame.span<30);assert.equal(updates,2);
+  body.mesh.matrixWorld.elements[12]=500;assert.deepEqual(framingPreset('iso').preset.target,[500,20,30]);
+ }finally{if(saved===undefined)delete globalThis.Cube;else globalThis.Cube=saved;}
+});
 test('workflow schemas reject incomplete types and excessive batches before touching editor',async()=>{
  const r=createRuntime();for(const [name,args] of [['mc_transform_keyframes',{animation:'walk',node:'head',keys:[{time:-1,channel:'rotation',value:[0,0,0]}]}],['mc_texture_workflow',{texture:'skin',fps:0}],['mc_bounding_box',{name:'bad',from:[0,0,0],to:[1,1,'x']}],['mc_control_node',{name:'node',kind:'script',position:[0,0,0]}]])assert((await r.call(name,args)).isError,name);
 });

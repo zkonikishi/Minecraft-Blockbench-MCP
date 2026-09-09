@@ -5,6 +5,8 @@ import {spawnSync} from 'node:child_process';
 import {bundleOptions,root} from './bundle-options.mjs';
 const output=resolve(process.env.BLOCKBENCH_TEST_DIR||resolve(root,'.test-output'));
 mkdirSync(output,{recursive:true});
+await build({...bundleOptions(),stdin:{contents:'export {framingPreset} from "./vendor/swag/packages/plugin/src/host/preview-port.ts";',resolveDir:root,loader:'ts'},format:'esm',outfile:resolve(output,'framing.mjs')});
+await build({...bundleOptions(),stdin:{contents:'export {applyFaces} from "sosadly-commands";',resolveDir:root,loader:'js'},format:'esm',outfile:resolve(output,'faces.mjs')});
 await build({...bundleOptions(),stdin:{contents:'export * from "./src/runtime.ts"; export * from "./src/registry.ts"; export * from "./src/engine-audit.ts"; export * from "./src/creature-tools.ts"; export * from "./src/workflow-tools.ts";',resolveDir:root,loader:'ts'},format:'esm',outfile:resolve(output,'runtime.mjs')});
 await build({...bundleOptions(),entryPoints:[resolve(root,'src/main.ts')],format:'iife',outfile:resolve(output,'plugin.js')});
 const result=spawnSync(process.execPath,['--test','tests/registry.test.mjs','tests/engines.test.mjs','tests/workflow.test.mjs','tests/lifecycle.test.mjs','tests/relay.test.mjs','tests/upstream.test.mjs'],{cwd:root,stdio:'inherit',env:{...process.env,BLOCKBENCH_TEST_DIR:output}});

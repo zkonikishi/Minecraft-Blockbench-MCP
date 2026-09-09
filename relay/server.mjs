@@ -9,16 +9,17 @@ const fail=message=>({isError:true,content:[{type:'text',text:message}]});
 function equal(a,b){if(typeof a!=='string'||typeof b!=='string')return false;const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&timingSafeEqual(x,y);}
 
 /** A loopback MCP endpoint shared by the desktop and Web plugin. */
-export async function startRelay({token,port=39800,requestTimeout=120000,pluginFile}={}) {
+export async function startRelay({token,port=39800,requestTimeout=120000,pluginFile,maxPayload=128*1024*1024}={}) {
   if(typeof token!=='string'||token.length<16)throw new Error('MINECRAFT_BLOCKBENCH_TOKEN must be at least 16 characters');
   if(!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid loopback port');
+  if(!Number.isSafeInteger(maxPayload)||maxPayload<1024||maxPayload>256*1024*1024)throw new Error('Invalid bridge payload limit');
   const origins=new Set(['https://web.blockbench.net','https://www.blockbench.net','https://blockbench.net','null','file://']);
   const trustedOrigin=origin=>!origin||origins.has(origin)||/^http:\/\/(127\.0\.0\.1|localhost)(?::\d+)?$/.test(origin);
   let bridge=null;
   let tools=[];
   const pending=new Map();
   const transports=new Set();
-  const wsServer=new WebSocketServer({noServer:true,maxPayload:16*1024*1024});
+  const wsServer=new WebSocketServer({noServer:true,maxPayload});
   const rejectPending=message=>{for(const {resolve,timer} of pending.values()){clearTimeout(timer);resolve(fail(message));}pending.clear();};
   const invoke=(name,args)=>{
     if(!bridge||bridge.readyState!==WebSocket.OPEN)return Promise.resolve(fail('Blockbench disconnected. Load the plugin, then Tools → Connect Minecraft MCP.'));
@@ -43,7 +44,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     if(req.url!=='/mcp'){res.writeHead(404).end();return;}
     if(!equal(req.headers.authorization,`Bearer ${token}`)){res.writeHead(401).end();return;}
     if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'}).end();return;}
-    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.5'},{capabilities:{tools:{}}});
+    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.6'},{capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
     const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
@@ -58,7 +59,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     wsServer.handleUpgrade(req,socket,head,ws=>{
       let authenticated=false;
       const timer=setTimeout(()=>ws.close(1008,'Authentication timeout'),5000);
-      ws.on('error',()=>{});
+      ws.on('error',error=>{console.error(`Minecraft MCP bridge error: ${error.code||'unknown'}`);});
       ws.on('message',raw=>{
         let data;try{data=JSON.parse(raw.toString());}catch{ws.close(1008,'Invalid JSON');return;}
         if(!data||typeof data!=='object'||Array.isArray(data)){ws.close(1008,'Expected message object');return;}
@@ -74,7 +75,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
         const result=CallToolResultSchema.safeParse(data.result);
         clearTimeout(waiter.timer);pending.delete(data.id);waiter.resolve(result.success?result.data:fail('Editor returned invalid MCP content'));
       });
-      ws.on('close',()=>{clearTimeout(timer);if(bridge===ws){bridge=null;tools=[];rejectPending('Blockbench disconnected during execution; inspect state before retrying.');}});
+      ws.on('close',code=>{clearTimeout(timer);if(bridge===ws){bridge=null;tools=[];rejectPending(code===1009?'Editor response exceeded bridge payload limit; export a single engine or download locally. The project remains in the editor.':'Blockbench disconnected during execution; inspect state before retrying.');}});
     });
   });
   app.requestTimeout=150000;app.headersTimeout=15000;

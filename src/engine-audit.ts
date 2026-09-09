@@ -127,6 +127,7 @@ export function auditModel(model:unknown,target:EngineTarget='both',boneBudget=6
   const animationNames=new Set<string>();
   for(const [i,a] of animations.entries()) {
     if(!object(a)){add('error','ANIMATION_INVALID',`animations.${i}`,'Expected animation object');continue;}
+    if(target!=='bettermodel'&&typeof a.override!=='boolean')add('error','ANIMATION_OVERRIDE',`animations.${i}.override`,'ModelEngine requires an explicit boolean animation.override (true or false); missing/null values can fail parsing in R4.1.1.');
     if(animationNames.has(a.name))add('error','ANIMATION_DUPLICATE',`animations.${i}`,`Duplicate animation: ${a.name}`);
     animationNames.add(a.name);
     if(!(typeof a.length==='number'&&Number.isFinite(a.length)&&a.length>0))add('warning','ANIMATION_LENGTH',a.name||String(i),'Set an explicit positive animation duration');

@@ -9,12 +9,15 @@ let runtime:ToolRegistry|null=null;
 let draining:Promise<void>=Promise.resolve(previousDrain);
 let generation=0;
 let loaded=false;
+let retry:ReturnType<typeof setTimeout>|null=null;
+let retryDelay=1000;
 const disposables:{delete:()=>void}[]=[];
 function cleanup(){loaded=false;disconnect();for(const item of disposables.splice(0))item.delete();return draining;}
 G[`${ID}_cleanup`]=cleanup;
 const setting=(key:string)=>G.settings?.[`${ID}_${key}`]?.value;
 function message(text:string){G.Blockbench?.showQuickMessage?.(text,4000);}
 function disconnect(){
+  if(retry!==null){clearTimeout(retry);retry=null;}
   generation++;
   if(runtime){runtime.stop();draining=runtime.drain();runtime=null;}
   socket?.close();socket=null;
@@ -39,19 +42,29 @@ async function connect(){
       let data:any;
       try{data=JSON.parse(String(event.data));}catch{return;}
       if(!data||typeof data!=='object'||Array.isArray(data))return;
-      if(data.type==='ready'){message('Minecraft Blockbench MCP connected');return;}
+      if(data.type==='ready'){retryDelay=1000;message('Minecraft Blockbench MCP connected');return;}
       if(data.type!=='call'||typeof data.id!=='string'||typeof data.name!=='string')return;
       const result=await current.call(data.name,data.arguments).catch(errorResult);
       if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'result',id:data.id,result}));
     };
     ws.onerror=()=>message('MCP connection failed. Check the relay, token and browser local-network permission.');
-    ws.onclose=()=>{current.stop();if(socket===ws){socket=null;message('Minecraft Blockbench MCP disconnected');}};
+    ws.onclose=event=>{
+      current.stop();
+      if(socket!==ws||ticket!==generation)return;
+      socket=null;message('Minecraft Blockbench MCP disconnected');
+      // Policy/authentication rejection includes another editor owning the relay.
+      // Do not compete with it or retry an invalid credential indefinitely.
+      if(loaded&&setting('autoconnect')&&event.code!==1008){
+        const delay=retryDelay;retryDelay=Math.min(retryDelay*2,30000);
+        retry=setTimeout(()=>{retry=null;void connect();},delay);
+      }
+    };
   }catch(e){message(`MCP startup failed: ${e instanceof Error?e.message:String(e)}`);disconnect();}
 }
 G.Plugin.register(ID,{
   title:'Minecraft Blockbench MCP',author:'zkonikishi; Jason J. Gardner; SwagRee; sosadly',
   description:'Unified Minecraft creature authoring for BetterModel and ModelEngine. Desktop and Web.',
-  icon:'smart_toy',version:'0.1.0-alpha.5',variant:'both',min_version:'5.1.0',
+  icon:'smart_toy',version:'0.1.0-alpha.6',variant:'both',min_version:'5.1.0',
   onload(){
     loaded=true;
     for(const [key,options] of Object.entries({

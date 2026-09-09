@@ -7,5 +7,5 @@ export function modelFixture(){return {
   elements:[{uuid:'cube-id',type:'cube',name:'cube',from:[-1,0,-1],to:[1,2,1],faces:{north:{uv:[0,0,2,2],texture:0}}}],
   outliner:[{uuid:'bone-id',name:'body',origin:[0,0,0],children:['cube-id']}],
   textures:[{uuid:'texture-id',id:'0',source:'data:image/png;base64,aGVsbG8='}],
-  animations:['idle','walk'].map(name=>({name,length:1,loop:'loop',animators:{'bone-id':{type:'bone',keyframes:[{time:0,channel:'rotation',interpolation:'linear',data_points:[{x:0,y:0,z:0}]}]}}})),
+  animations:['idle','walk'].map(name=>({name,length:1,loop:'loop',override:false,animators:{'bone-id':{type:'bone',keyframes:[{time:0,channel:'rotation',interpolation:'linear',data_points:[{x:0,y:0,z:0}]}]}}})),
 };}

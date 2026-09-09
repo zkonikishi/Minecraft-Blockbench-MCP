@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import {runtime,modelFixture} from './helpers.mjs';
 const {auditModel,scaffoldPlan}=runtime;
 const codes=(m,t='both')=>new Set(auditModel(m,t).findings.map(f=>f.code));
+test('ModelEngine override is required boolean, remains non-mutating and does not apply to BetterModel',()=>{
+ for(const value of [undefined,null,0,1,'false',{},[]]){
+  const model=modelFixture();if(value===undefined)delete model.animations[0].override;else model.animations[0].override=value;
+  const before=structuredClone(model);
+  for(const target of ['modelengine','both']){const r=auditModel(model,target);assert.equal(r.ok,false);assert(r.findings.some(f=>f.code==='ANIMATION_OVERRIDE'&&f.severity==='error'&&f.path==='animations.0.override'));}
+  assert(!codes(model,'bettermodel').has('ANIMATION_OVERRIDE'));assert.deepEqual(model,before);
+ }
+ for(const value of [true,false]){const model=modelFixture();model.animations[0].override=value;assert.equal(auditModel(model,'modelengine').ok,true);}
+});
 test('valid shared cube model passes static checks without claiming runtime acceptance',()=>{
   const r=auditModel(modelFixture());assert.equal(r.ok,true);assert.equal(r.runtimeVerified,false);assert.equal(r.counts.bones,1);
 });
