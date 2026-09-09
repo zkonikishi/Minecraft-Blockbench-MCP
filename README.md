@@ -122,3 +122,5 @@ node scripts/live-workflow.mjs --confirm-disposable
 ---
 
 **English:** A unified local MCP for Minecraft creature authoring in Blockbench desktop and Web, targeting BetterModel and ModelEngine. It integrates the original SwagRee, Jason J. Gardner and sosadly tool implementations with a serialized runtime, engine profiles, creature scaffolds, static audits and embedded-texture `.bbmodel` export. Install dependencies, build, start the loopback relay with a random token, load the plugin file, configure the same token in Blockbench and connect your MCP client. Alpha: local official-source Web workflow tested; desktop and Minecraft engine runtime acceptance remain pending.
+
+后续功能规划见[开发路线](docs/ROADMAP.md)。
