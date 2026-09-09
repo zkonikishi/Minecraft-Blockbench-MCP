@@ -1,6 +1,6 @@
 {
   "name": "minecraft-blockbench-mcp",
-  "version": "0.1.0-alpha.6",
+  "version": "0.1.0-alpha.7",
   "private": true,
   "description": "Unified desktop and Web Blockbench MCP for BetterModel and ModelEngine creature authoring",
   "license": "GPL-3.0-only",

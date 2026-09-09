@@ -2,6 +2,18 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {runtime,modelFixture} from './helpers.mjs';
 const {shiftTime,squareBounds,validateScript,collectionModel,auditModel,createRuntime}=runtime;
+test('CEM import strips nested textures, rejects external geometry before mutation and retains old project on failure',async()=>{
+ const keys=['Project','Formats','Format','Codecs','Outliner','Group','Texture'];const saved=Object.fromEntries(keys.map(k=>[k,globalThis[k]]));
+ const old={uuid:'old',select(){globalThis.Project=this;}};let calls=0,received;
+ const model={texture:'https://external/skin.png',textureSize:[64,64],models:[{part:'head',texture:'D:/secret.png',translate:[0,-24,0],boxes:[{coordinates:[-4,24,-4,8,8,8],textureOffset:[0,0]}],submodels:[{id:'child',texture:'file:///secret',boxes:[]}]}]};
+ try{
+  Object.assign(globalThis,{Project:old,Formats:{optifine_entity:{}},Format:{id:'optifine_entity'},Codecs:{optifine_entity:{load(m,f){calls++;received=m;assert.deepEqual(f,{path:'',no_file:true});globalThis.Project={uuid:'new'};}}}});
+  const r=createRuntime();
+  for(const bad of [{models:[]},{models:[{part:'head',model:'outside.jpm'}]},{models:[{part:'head',submodel:{}}]},{models:[{part:'head',boxes:[{coordinates:[0,0,0,-1,1,1]}]}]},{models:[{part:'head',mirrorTexture:3}]}]){assert((await r.call('mc_import_cem',{model:bad})).isError);assert.equal(calls,0);assert.equal(globalThis.Project,old);}
+  const before=structuredClone(model),res=await r.call('mc_import_cem',{model,name:'zombie'});assert(!res.isError,JSON.stringify(res));assert.equal(calls,1);assert.deepEqual(model,before);assert.equal(received.texture,undefined);assert.equal(received.models[0].texture,undefined);assert.equal(received.models[0].submodels[0].texture,undefined);assert.deepEqual(received.models[0].boxes,model.models[0].boxes);assert.equal(JSON.parse(res.content[0].text).removedTextures,3);
+  globalThis.Project=old;globalThis.Codecs.optifine_entity.load=()=>{globalThis.Project={uuid:'partial'};throw Error('parse failed');};assert((await r.call('mc_import_cem',{model})).isError);assert.equal(globalThis.Project,old);
+ }finally{for(const k of keys){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}}
+});
 test('loop phases preserve explicit endpoint with no shift and wrap offsets',()=>{
  assert.equal(shiftTime(1,1,0),1);assert.equal(shiftTime(.75,1,.5),.25);assert.equal(shiftTime(.5,1,.5),0);assert.throws(()=>shiftTime(0,0,.5));
 });

@@ -44,7 +44,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     if(req.url!=='/mcp'){res.writeHead(404).end();return;}
     if(!equal(req.headers.authorization,`Bearer ${token}`)){res.writeHead(401).end();return;}
     if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'}).end();return;}
-    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.6'},{capabilities:{tools:{}}});
+    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.7'},{capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
     const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});

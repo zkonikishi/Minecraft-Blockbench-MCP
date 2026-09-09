@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {zodTool} from './registry.js';
+import {cemImportTool} from './cem-import.js';
 
 export function importTools(){return [zodTool('mc_import_bbmodel',
  'Import a parsed bbmodel JSON object into a NEW project using the native project codec. Existing projects stay open. Requires installed format and embedded PNG textures; no filesystem paths are read. Returns project UUID and counts.',
@@ -36,4 +37,4 @@ export function importTools(){return [zodTool('mc_import_bbmodel',
    if(previous&&g.Project!==previous)previous.select();
    throw error;
   }
- },{projectChange:true})];}
+ },{projectChange:true}),cemImportTool()];}
