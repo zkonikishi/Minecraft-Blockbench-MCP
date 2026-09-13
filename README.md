@@ -2,7 +2,10 @@
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，并对接 **BetterModel、ModelEngine、CraftEngine**。
 
-**Alpha 8 · GPL-3.0-only · 开发分支 `Alpha`**
+[![Release](https://img.shields.io/github/v/release/zkonikishi/Minecraft-Blockbench-MCP?include_prereleases)](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+
+**当前发布：Alpha 8 · 开发分支 `Alpha` · 中文文档 / English overview below**
 
 [下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 8 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.8) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
@@ -21,6 +24,15 @@
 | 连接与大文件 | 自动重连、共享执行队列、128 MiB 桥接响应上限 |
 
 骨架模板是制作起点，动画槽需要写入真实关键帧。寻路、战斗 AI 和技能逻辑仍由游戏或服务器插件负责。
+
+## 引擎支持范围
+
+| 目标 | MCP 负责 | 运行时依赖与边界 |
+| --- | --- | --- |
+| BetterModel | 生物骨骼、动画制作、规范检查与模型导出 | 服务器安装 BetterModel；行为与技能由服务器侧实现 |
+| ModelEngine | 生物骨骼、动画、碰撞箱、标签检查与模型导出 | 服务器安装 ModelEngine；具体特性按目标版本检查 |
+| CraftEngine | 静态物品 / 家具蓝图、动态家具模型引用与资源包合并方案 | CE 负责生成与分发资源包；动态模型依赖 BetterModel / ModelEngine |
+| YSM / 时装工坊 | 已登记离线恢复路线 | 当前没有转换器或可用导入接口 |
 
 ## 快速开始
 
@@ -71,6 +83,28 @@ Web 版使用相同的文件加载方式。Blockbench 的插件 URL 安装器不
 
 连接后调用 `mc_status` 检查版本、当前工程和工具数量。服务仅监听本机回环地址，云端客户端无法直接访问你电脑的 `127.0.0.1`。一个 relay 同时连接一个编辑器窗口。
 
+### 4. 确认真正连通
+
+MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个独立环节。以 `mc_status` 成功返回编辑器状态为准，单纯看到工具列表不代表可以操作模型。
+
+| 现象 | 检查方法 |
+| --- | --- |
+| 客户端无法连接 MCP | 确认本机服务正在运行、URL 与端口一致、Bearer token 正确 |
+| 能列出工具，但提示编辑器未连接 | 在 Blockbench 加载插件，核对 bridge URL 与 token，再执行 Connect Minecraft MCP |
+| Web 页面刷新后工具不可用 | 重新加载插件，或按本地 Web 主机说明配置持久加载 |
+| 另一编辑器窗口连接失败 | 一个 relay 只连接一个编辑器；先断开原窗口，或继续使用原窗口 |
+| 大模型操作超时 | 先检查编辑器中的工程与操作结果，避免重复导入或重复创建 |
+
+## 示例请求
+
+连接后可以直接对 AI 描述目标，例如：
+
+- “制作一个用于 BetterModel 的四足生物，包含下颚、尾巴骨骼和 idle / walk 动画，检查后导出。”
+- “检查当前模型是否符合 ModelEngine，列出骨骼、贴图和动画问题，修复后分别导出两个引擎版本。”
+- “把当前 Java Block 模型导出为 CraftEngine 静态家具内容包，并生成资源包合并方案。”
+
+这些是制作任务示例，最终结果仍需预览与引擎验证；AI 不会仅凭骨架模板自动获得完整动作或战斗行为。
+
 ## 三条制作流程
 
 ### BetterModel / ModelEngine 生物
@@ -102,6 +136,8 @@ Web 版使用相同的文件加载方式。Blockbench 的插件 URL 安装器不
 工具参数以 `tools/list` 返回的 schema 为准。编辑期间避免切换工程；长操作超时后应先检查编辑器状态再决定是否重试。
 
 ## 验证情况
+
+以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
 
 | 范围 | 已完成的验证 |
 | --- | --- |
