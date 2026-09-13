@@ -1,3 +1,4 @@
+import {ysmTools,callYsm} from './ysm-tools.mjs';
 import http from 'node:http';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import {readFile} from 'node:fs/promises';
@@ -22,6 +23,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
   const wsServer=new WebSocketServer({noServer:true,maxPayload});
   const rejectPending=message=>{for(const {resolve,timer} of pending.values()){clearTimeout(timer);resolve(fail(message));}pending.clear();};
   const invoke=(name,args)=>{
+    if(ysmTools.some(t=>t.name===name))return callYsm(name,args);
     if(!bridge||bridge.readyState!==WebSocket.OPEN)return Promise.resolve(fail('Blockbench disconnected. Load the plugin, then Tools → Connect Minecraft MCP.'));
     if(!tools.some(t=>t.name===name))return Promise.resolve(fail(`Unknown tool: ${name}`));
     if(pending.size>=64)return Promise.resolve(fail('Too many outstanding requests'));
@@ -44,8 +46,8 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     if(req.url!=='/mcp'){res.writeHead(404).end();return;}
     if(!equal(req.headers.authorization,`Bearer ${token}`)){res.writeHead(401).end();return;}
     if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'}).end();return;}
-    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.9'},{capabilities:{tools:{}}});
-    server.setRequestHandler(ListToolsRequestSchema,async()=>({tools}));
+    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.10'},{capabilities:{tools:{}}});
+    server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[...ysmTools,...tools]}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
     const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
     transports.add(transport);

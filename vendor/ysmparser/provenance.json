@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/OpenYSM/YSMParser",
+  "tag": "v0.3.5",
+  "commit": "07f2372688e1f222bdce02a21913d43ca44689b0",
+  "asset": "YSMParser-0.3.5-wasm-web.tar.gz",
+  "license": "MIT",
+  "files": {
+    "YSMParser.js": "3c63ef02a55f51ba50c68336fb9d87d8d95677fd3a3418addb3532f31512251c",
+    "YSMParser.wasm": "f5bbbdad580e29188e84a0e14f97713357beb39c4447f188f3551751619185bd",
+    "LICENSE.txt": "6a40eec3af3fc11902ecb620252b651daab424d596bcffc3d69ee3651b36df35"
+  }
+}

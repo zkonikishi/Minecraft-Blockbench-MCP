@@ -44,7 +44,7 @@ test('real SDK initialize/list/call crosses authenticated HTTP + WebSocket and p
     ws.on('message',raw=>{const msg=JSON.parse(raw);if(msg.type==='call')ws.send(JSON.stringify({type:'result',id:msg.id,result:{content:[{type:'text',text:JSON.stringify(msg.arguments)},{type:'image',mimeType:'image/png',data:'aGVsbG8='}]}}));});
     client=new Client({name:'integration-test',version:'1'});
     await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${relay.port}/mcp`),{requestInit:{headers:{Authorization:`Bearer ${token}`}}}));
-    assert.equal((await client.listTools()).tools[0].name,'test_tool');
+    assert((await client.listTools()).tools.some(t=>t.name==='test_tool'));
     const result=await client.callTool({name:'test_tool',arguments:{probe:42}});assert.equal(JSON.parse(result.content[0].text).probe,42);assert.equal(result.content[1].type,'image');
   }finally{await client?.close();ws?.terminate();await relay.close();}
 });

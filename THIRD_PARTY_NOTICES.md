@@ -48,3 +48,13 @@ Runtime/build dependencies retain their own licenses: Zod (MIT), zod-to-json-sch
 (ISC), Ajv (MIT), ws (MIT), MCP TypeScript SDK (MIT), esbuild (MIT), TypeScript
 (Apache-2.0), and Node.js type definitions (MIT). See installed dependency license
 files and `package-lock.json` for the exact dependency graph.
+
+## OpenYSM — YSMParser (optional offline recovery runtime)
+
+- Source: https://github.com/OpenYSM/YSMParser/tree/v0.3.5
+- Commit: `07f2372688e1f222bdce02a21913d43ca44689b0`.
+- License: MIT; preserved in `vendor/ysmparser/LICENSE.txt`.
+- The unmodified Web WASM release is pinned by SHA-256 in
+  `vendor/ysmparser/provenance.json`. It runs locally in a worker with a virtual
+  filesystem, without Minecraft, the Mod, or a browser/editor.
+- Recovery does not grant permission to redistribute third-party model assets.

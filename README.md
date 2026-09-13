@@ -5,11 +5,15 @@
 [![Release](https://img.shields.io/github/v/release/zkonikishi/Minecraft-Blockbench-MCP?include_prereleases)](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-**当前发布：Alpha 9 · 开发分支 `Alpha` · 中文文档 / English overview below**
+**当前发布：Alpha 10 · 开发分支 `Alpha` · 中文文档 / English overview below**
 
-[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 9 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.9) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
+[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 10 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.10) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
-一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 9 已实测 **235 个默认 Web 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 10 提供 **235 个默认 Web 编辑器工具 + 2 个离线 YSM 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+
+## Alpha 10：YSM 离线恢复
+
+新增 `mc_ysm_inspect` / `mc_ysm_recover` 和离线 CLI：从 `.ysm` 恢复 `.bbmodel`、贴图与骨骼动画，保留原始资源并输出差异报告。无需启动 Minecraft、YSM Mod 或编辑器。已验证 V1、V2、BOM V3 各一个样本；不承诺无损或全部版本覆盖。见 [YSM 使用说明](docs/YSM.md)。
 
 ## Alpha 9 更新
 
@@ -44,7 +48,8 @@
 | BetterModel | 生物骨骼、动画制作、规范检查与模型导出 | 服务器安装 BetterModel；行为与技能由服务器侧实现 |
 | ModelEngine | 生物骨骼、动画、碰撞箱、标签检查与模型导出 | 服务器安装 ModelEngine；具体特性按目标版本检查 |
 | CraftEngine | 静态物品 / 家具蓝图、动态家具模型引用与资源包合并方案 | CE 负责生成与分发资源包；动态模型依赖 BetterModel / ModelEngine |
-| YSM / 时装工坊 | 已登记离线恢复路线 | 当前没有转换器或可用导入接口 |
+| YSM | 离线容器解析、bbmodel 恢复与差异报告 | 已验证三个容器族代表样本，运行时语义有边界 |
+| 时装工坊 | 已登记离线恢复路线 | 当前没有转换器或可用导入接口 |
 
 ## 快速开始
 
@@ -184,7 +189,7 @@ node scripts/live-workflow.mjs --confirm-disposable
 
 ## 后续计划
 
-**YSM / 时装工坊（AM/AW）离线模型恢复已列入计划，尚未实现、尚未验证。** 目标是独立离线转换核心、CLI、恢复报告及可选 Blockbench 导入；需要先完成版本样本、格式和许可核实，不承诺无损还原。见[开发路线](docs/ROADMAP.md)。
+**YSM 离线恢复已在 Alpha 10 实现，时装工坊（AM/AW）仍未实现。** 后续完善 YSM 更多格式与样本覆盖、动画控制器和复杂材质映射。见 [YSM 范围](docs/YSM.md)与[开发路线](docs/ROADMAP.md)。
 
 ## 许可证
 
@@ -194,4 +199,4 @@ node scripts/live-workflow.mjs --confirm-disposable
 
 ---
 
-**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. Alpha 8 has 211 verified default Web tools and 47 passing regression tests. Engine and resource-pack acceptance is documented separately from graphical client validation. Offline YSM / Armourer's Workshop recovery is planned, not implemented.
+**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. Alpha 8 has 211 verified default Web tools and 47 passing regression tests. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.
