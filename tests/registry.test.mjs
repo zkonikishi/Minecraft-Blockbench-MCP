@@ -55,3 +55,43 @@ test('Wiki bone tags preserve UUID, are idempotent, and reject collisions before
     assert.equal(content(await r.call('mc_modelengine_features')).devBuild,null);
   }finally{Object.assign(globalThis,saved);}
 });
+
+
+test('upstream refresh exposes display and wing tools but keeps file exports desktop-only',()=>{
+ const web=createRuntime(); const desktop=createRuntime({desktop:true});
+ for(const name of ['studio_get_display_transform','studio_set_display_transform','studio_enter_display_mode','anim_add_wing']) assert(web.definitions.has(name),name);
+ assert(!web.definitions.has('anim_export_model')); assert(desktop.definitions.has('anim_export_model'));
+});
+
+test('script guard uses local advanced setting and undefined results remain valid MCP content',async()=>{
+ const saved={settings:globalThis.settings,Blockbench:globalThis.Blockbench};
+ try {
+  globalThis.Blockbench={};globalThis.settings={minecraft_blockbench_mcp_advanced:{value:false}};
+  const r=createRuntime({advanced:true});
+  assert.equal((await r.call('anim_execute_script',{code:'return 1;'})).isError,true);
+  globalThis.settings.minecraft_blockbench_mcp_advanced.value=true;
+  const result=await r.call('anim_execute_script',{code:'void 0;'});
+  assert(!result.isError,JSON.stringify(result));assert.equal(typeof result.content[0].text,'string');
+ } finally {Object.assign(globalThis,saved);}
+});
+
+
+test('async export resolves codec content instead of serializing a Promise',async()=>{
+ const saved={Project:globalThis.Project,Format:globalThis.Format,Codecs:globalThis.Codecs};
+ try {globalThis.Project={};globalThis.Format={};globalThis.Codecs={gltf:{id:'gltf',compile:async()=>({asset:{version:'2.0'}})}};
+ const r=createRuntime({desktop:true});const res=await r.call('studio_export_model',{codec_id:'gltf',max_content_length:10000});
+ assert(!res.isError,JSON.stringify(res));assert.match(res.content[0].text,/2.0/);
+ } finally {Object.assign(globalThis,saved);}
+});
+
+test('keyframe writes preserve independent scale axes and accept zero on edit',async()=>{
+ const saved=Object.fromEntries(['Project','Group','Animation','Undo','Animator'].map(k=>[k,globalThis[k]]));
+ try {
+ const frames=[];const bone={uuid:'body-id',name:'body'};
+ const animator={scale:frames,createKeyframe(data){const frame={...data,uniform:true,axes:{},set(k,v){if(this.uniform)this.axes={x:v,y:v,z:v};else this.axes[k]=v;}};frames.push(frame);return frame;}};
+ globalThis.Project={};globalThis.Group={all:[bone]};globalThis.Animation={selected:{animators:{'body-id':animator}}};globalThis.Undo={initEdit(){},finishEdit(){}};globalThis.Animator={preview(){}};
+ const r=createRuntime();const args={bone_name:'body',channel:'scale',action:'create',keyframes:[{time:0,values:[1,2,3]}]};
+ const result=await r.call('studio_manage_keyframes',args);assert(!result.isError,JSON.stringify(result));assert.deepEqual(frames[0].axes,{x:1,y:2,z:3});
+ const edited=await r.call('studio_manage_keyframes',{...args,action:'edit',keyframes:[{time:0,values:0}]});assert(!edited.isError,JSON.stringify(edited));assert.deepEqual(frames[0].axes,{x:0,y:0,z:0});
+ }finally{Object.assign(globalThis,saved);}
+});

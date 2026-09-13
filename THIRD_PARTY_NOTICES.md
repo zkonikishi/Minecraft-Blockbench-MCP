@@ -7,7 +7,7 @@ an official Blockbench, BetterModel or ModelEngine project.
 ## Jason J. Gardner — blockbench-mcp-plugin
 
 - Source: https://github.com/jasonjgardner/blockbench-mcp-plugin
-- Commit: `6b069e308fdfc9b0a1c15bc924ca78150815f143`
+- Commit: `b187b4b056f0efafcc573335400ecbb21ad26ecc`
 - License: GPL-3.0-only; original license in `vendor/jason/LICENSE` and root `LICENSE`.
 - Contribution: core studio modeling, mesh, paint, material, camera, UV, animation,
   history and UI tools, schema utilities and authoring skills.
@@ -31,7 +31,7 @@ an official Blockbench, BetterModel or ModelEngine project.
 ## sosadly — blockbench-mcp
 
 - Source: https://github.com/sosadly/blockbench-mcp
-- Commit: `273607ba5421f808e68e9041f8733f4dc46e7bb9`
+- Commit: `09ea5c6e8ffed8c5cc1b68b72f86abfe300dd592`
 - License: MIT, Copyright (c) 2026 sosadly. Full notice: `vendor/sosadly/LICENSE`.
 - Contribution: animation/model/texture operations, editor commands, screenshot
   content and modeling guides.

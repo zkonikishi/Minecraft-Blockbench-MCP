@@ -1,3 +1,4 @@
+import { registerDisplayTools } from '../vendor/jason/server/tools/display.ts';
 import { registerAnimationTools } from '../vendor/jason/server/tools/animation.ts';
 import { registerArmatureTools } from '../vendor/jason/server/tools/armature.ts';
 import { registerCameraTools } from '../vendor/jason/server/tools/camera.ts';
@@ -22,7 +23,7 @@ import { importedJasonTools } from './jason-factory.ts';
 let registered = false;
 export function vendorTools() {
   if (!registered) {
-    for (const register of [registerAnimationTools,registerArmatureTools,registerCameraTools,registerCubesTools,
+    for (const register of [registerDisplayTools,registerAnimationTools,registerArmatureTools,registerCameraTools,registerCubesTools,
       registerElementTools,registerExportTools,registerHistoryTools,registerImportTools,registerMaterialInstanceTools,
       registerMeshTools,registerPaintTools,registerProjectTools,registerTextureTools,registerUITools,registerUVTools]) register();
     registered = true;

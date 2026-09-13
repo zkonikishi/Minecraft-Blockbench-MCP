@@ -17,6 +17,10 @@ export function bundleOptions() {
       build.onResolve({filter:/^sosadly-commands$/},()=>({path:'commands',namespace:'sosadly'}));
       build.onLoad({filter:/.*/,namespace:'sosadly'},()=>{
         const original = readFileSync(resolve(root,'vendor/sosadly/plugin/blockbench_mcp.js'),'utf8');
+        const stateStart = original.indexOf('const G =');
+        const stateEnd = original.indexOf('// Blockbench gives plugins');
+        if(stateStart<0||stateEnd<stateStart)throw new Error('Pinned state boundary changed');
+        const state=original.slice(stateStart,stateEnd).replace('globalThis.__BLOCKBENCH_MCP__','globalThis.__MINECRAFT_BLOCKBENCH_ANIM__');
         const start = original.indexOf('function requireProject()');
         const end = original.indexOf('// HTTP server');
         if(start<0||end<start)throw new Error('Pinned sosadly extraction boundary changed');
@@ -24,7 +28,7 @@ export function bundleOptions() {
         const extracted=original.slice(start,end);
         if(extracted.split(faceLookup).length!==3)throw new Error('Pinned face texture adapter boundary changed');
         const adapted=extracted.replaceAll(faceLookup,'if (fd.texture === null) { face.texture = null; continue; }\n\t\t\t'+faceLookup);
-        return {contents:`const PROTOCOL_VERSION=1;\n${adapted}\nexport { commands, applyFaces };`,loader:'js',resolveDir:root};
+        return {contents:`const PROTOCOL_VERSION=1;\n${state}\nfunction scriptsAllowed(){return globalThis.settings?.minecraft_blockbench_mcp_advanced?.value === true;}\n${adapted}\nexport { commands, applyFaces };`,loader:'js',resolveDir:root};
       });
       build.onLoad({filter:/vendor[\\/]swag[\\/]packages[\\/]plugin[\\/]src[\\/]mcp[\\/]rpc\.ts$/},args=>({
         contents:readFileSync(args.path,'utf8')+'\nexport { listTools, callTool };\n',loader:'ts'}));

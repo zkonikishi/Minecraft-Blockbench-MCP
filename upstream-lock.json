@@ -2,7 +2,7 @@
   {
     "id": "jason",
     "repository": "https://github.com/jasonjgardner/blockbench-mcp-plugin",
-    "commit": "6b069e308fdfc9b0a1c15bc924ca78150815f143",
+    "commit": "b187b4b056f0efafcc573335400ecbb21ad26ecc",
     "declaredLicense": "GPL-3.0-only",
     "files": {
       ".agents/skills/blockbench-plugins/SKILL.md": "03b7cb7c8fc69dea7a9a96d41c962235ad1dcfd553b94b2d4c30f70b3a63fd8f",
@@ -106,14 +106,14 @@
       "lib/resourceUri.ts": "0f3dc0bede7fd9e4892e7c589ed3d5a6bb4da660458b5d113a1ed304b9d5b5da",
       "lib/sessions.ts": "8da9f4b82ed4d371a3e526958bf2fdbe1765f03b0b1fbb02e9c9d00f7143cdf3",
       "lib/util.ts": "aba633c192aaba4888cfb33cd9c6d617e9f710039edf2c090d5f12704584a519",
-      "lib/zodObjects.ts": "df4a44e584d9cdd84c9f73fdf694cfe5585a1c0f6b3a44af59596a3cac741f45",
-      "package.json": "67b485888ae132526ea5eb0a147475454c418091aedd12dc0c46653aac2645df",
-      "server/tools/animation.ts": "ccdec0af95e574b4a0770108e67d5874b6d53876e0741808c2e2fcf579a5d73a",
+      "lib/zodObjects.ts": "6634132e25e848c7270606b0c5088310524bb4b1ce32dee8c6b86035eb1a2f16",
+      "package.json": "bed42913198360219db4fc91c18d5a49300b78dd9aed760e3e3476593ebc7db3",
+      "server/tools/animation.ts": "a3d3f90d1a67e0be1e3eb1ff5ccb13d5620191fc70a4065981afe4dcdc0ca1a3",
       "server/tools/armature.ts": "bf1992d5af613910b38161682aa91c14293956ec3862f71b262013bd856a5dd8",
       "server/tools/camera.ts": "6e58b7e6c5c73cb8d28742848f3be55f59c1e40c86cd115c4c069972c33cb641",
       "server/tools/cubes.ts": "813759db15d19608f7d8227d9c7d31ae6441ab2b830e6fdbaa82a9fd95ec3138",
-      "server/tools/element.ts": "ec9c5602fdbac426cb82ba8d2b2c76962643980ed61d49cf0978ee3d96fda420",
-      "server/tools/export.ts": "a5682bec12d6404315a887179e90d8d5c766648940362eed01e2342c3ca7adc8",
+      "server/tools/element.ts": "dff5520795cf3909a4b73d29f547383c114e04d9e721284ab5d52a66e6171c55",
+      "server/tools/export.ts": "650fa8d9865db53a7c50b775a407e1e651057e46cb4b719fcdbe2351b1936829",
       "server/tools/history.ts": "0ba816f28b29f41212a63f1fbe840a214de55f49097989ef14c175ed164f5dde",
       "server/tools/hytale.ts": "c148e5a3217cac7abc596db1db281cf0e5c4e0a7ec71fdc4a3711b9648eb2e23",
       "server/tools/import.ts": "deeea3073f48bf705f081567643ceb7e1ffc6e9de3a0d64076b60987bbd464fb",
@@ -121,10 +121,11 @@
       "server/tools/mesh.ts": "b4f0cdfaef28381b19eb93149fb50623a342c2737c77453b4bc232eeb9a57dcd",
       "server/tools/paint.ts": "95dc55bb56cbe2c92698fb5f9583c206f95ff606f537b45e66b10c30255088fb",
       "server/tools/project.ts": "150c15ffe5a02c675a41cf5ccb087c88aee4aa398445d906e344254d464a0f00",
-      "server/tools/texture.ts": "605fc3f2a440cb0f262545f28946225bc5bac379ac0ceb4a3c92215cdb850dbe",
+      "server/tools/texture.ts": "bbfaf8f2fef14c30feedaa41b9a367b2ed8af40be0b060641b25186da44cbd57",
       "server/tools/ui.ts": "564fb02a16733e63f8c51de72665624b3d1dece77594b3cf815e6d8519cffcea",
       "server/tools/uv.ts": "8bb2a8302328459f8e51f8560092cf6772f523db07c9b691bc7e7d23bd84c96e",
-      "types.d.ts": "6bd4cdc862e09aa2b543078c3008bde8d379100d511c6b6f8705e0babe51c3bf"
+      "types.d.ts": "6bd4cdc862e09aa2b543078c3008bde8d379100d511c6b6f8705e0babe51c3bf",
+      "server/tools/display.ts": "20e922f4e73688bf4b348048b19031f81079fa42fe96d16f30432d33ab26238a"
     }
   },
   {
@@ -234,14 +235,17 @@
   {
     "id": "sosadly",
     "repository": "https://github.com/sosadly/blockbench-mcp",
-    "commit": "273607ba5421f808e68e9041f8733f4dc46e7bb9",
+    "commit": "09ea5c6e8ffed8c5cc1b68b72f86abfe300dd592",
     "declaredLicense": "MIT",
     "files": {
       "LICENSE": "d8df9df1ac336b6717be2f8f62eb513adaea1378bbc76f3613c2d639be366545",
-      "README.md": "2da99ebbd8d8db2be55951946a594904436075b8909f0e4709a8df5062d5635d",
-      "package.json": "2749d7507cefeb626ca5d17ffefe0d0b38093b920c9b4d217e0e0811a4358209",
-      "plugin/blockbench_mcp.js": "c9b4d8784d1c2e607e0953435880a4a56ecfbe0869faf9e4df42b37413e2b581",
-      "src/tools.ts": "638048011de0b6421d9736e884776e3713a3c5433d24abb3cd9524d8b036eff1"
+      "README.md": "fd25a17d6c67e75fadb65063c0f6cf83cfb5dd737c0825ecc66b71f307b5d965",
+      "package.json": "50a14a56aa51f29a0792a155330007f570232939ec8847ef3d2d80852c524b61",
+      "plugin/blockbench_mcp.js": "9c0f6fecaa528a698b3adb095f854383fc5ea231336462b9e97ab73a043c3721",
+      "src/tools.ts": "c6cae18949e80ed4aed75ce39a2032637bed6abcc93dd9337080412b6793d6b8",
+      "test/plugin-bridge.test.js": "4b86dd66394784b03bcb4d422b55758dd7417c811b8b3eb3c6f5221493deb4c9",
+      "test/plugin-generators.test.js": "267347338a10b7d588a3599c81911a5552e5ea70b5768dc0b58a61921ac6f56a",
+      "test/tools.test.js": "ffa5a63141935c98375e1c8b3c8919ad5c727f9f7486bb40c24e9cba0ed5ef7c"
     }
   }
 ]

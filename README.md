@@ -5,11 +5,23 @@
 [![Release](https://img.shields.io/github/v/release/zkonikishi/Minecraft-Blockbench-MCP?include_prereleases)](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-**当前发布：Alpha 8 · 开发分支 `Alpha` · 中文文档 / English overview below**
+**当前发布：Alpha 9 · 开发分支 `Alpha` · 中文文档 / English overview below**
 
-[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 8 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.8) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
+[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 9 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.9) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
-一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 8 已实测 **211 个默认 Web 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 9 已实测 **235 个默认 Web 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+
+## Alpha 9 更新
+
+同步 Jason v1.7.0 与 sosadly 2026-09-12 快照，SwagRee 快照保持不变。
+
+- 新增 `studio_get_display_transform`、`studio_set_display_transform`、`studio_enter_display_mode`，用于物品展示设置。
+- 新增 `anim_add_wing`，生成翅膀骨骼与翼膜；同时更新上游骨架、动作与模型检查能力。
+- 修复 studio 关键帧数值、非均匀缩放与零值编辑，以及贴图渲染设置保留。
+- 修复异步 codec 导出；新增桌面专用 `anim_export_model`。
+- 脚本执行继续受本地 Advanced 开关控制；依赖上游 Copilot 面板的三个交互工具不注册。
+
+详见 [Alpha 9 更新与验证](docs/ALPHA9.md)。
 
 ## 可以做什么
 
@@ -137,7 +149,7 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 
 ## 验证情况
 
-以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
+Alpha 9 已通过 51 项整合测试、48 项 sosadly 翅膀/桥接测试及原有上游测试；Web 连通和工具列表另行实测。以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
 
 | 范围 | 已完成的验证 |
 | --- | --- |

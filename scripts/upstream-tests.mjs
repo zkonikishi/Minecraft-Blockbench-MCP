@@ -22,5 +22,6 @@ for(const name of ['bedrock-host.test','startup.test']) {
   source=source.replaceAll('await build({',`await build({ alias: {"@blockbench-mcp/shared":${JSON.stringify(join(shared,'index.ts'))}},`);
   const file=join(output,`${name}.mjs`);writeFileSync(file,source);tests.push(file);
 }
+tests.push(resolve(root,'vendor/sosadly/test/plugin-generators.test.js'),resolve(root,'vendor/sosadly/test/plugin-bridge.test.js'));
 const run=spawnSync(process.execPath,['--test',...tests],{cwd:root,stdio:'inherit',env:process.env});
 process.exitCode=run.status??1;

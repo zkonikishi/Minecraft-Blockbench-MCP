@@ -5,12 +5,14 @@ import { creatureTools } from './creature-tools.js';
 import { workflowTools } from './workflow-tools.js';
 import { importTools } from './import-tools.js';
 import { craftengineTools } from './craftengine-tools.js';
-const DESKTOP_ONLY=new Set(['craft_propose_scoped_directory','craft_save_project','craft_export_model','craft_import_texture_png','craft_export_texture_png','anim_load_project','anim_save_project','anim_export_project','anim_import_texture','studio_export_model','studio_save_checkpoint','studio_capture_app_screenshot']);
+const DESKTOP_ONLY=new Set(['craft_propose_scoped_directory','craft_save_project','craft_export_model','craft_import_texture_png','craft_export_texture_png','anim_load_project','anim_save_project','anim_export_project','anim_export_model','anim_import_texture','studio_export_model','studio_save_checkpoint','studio_capture_app_screenshot']);
+const PANEL_ONLY=new Set(['anim_request_review','anim_wait_review','anim_ask_user']);
 const ADVANCED=new Set(['studio_risky_eval','studio_trigger_action','studio_emulate_clicks','studio_fill_dialog','anim_execute_script','anim_install_plugin','anim_uninstall_plugin']);
 export function createRuntime(options:{desktop?:boolean;advanced?:boolean}={}) {
   const registry=new ToolRegistry();
   const unavailable:{name:string;reason:string}[]=[];
   for(const tool of vendorTools()) {
+    if(PANEL_ONLY.has(tool.name)){unavailable.push({name:tool.name,reason:'requires upstream Copilot panel; use the MCP client conversation for review'});continue;}
     if(!options.desktop&&DESKTOP_ONLY.has(tool.name)){unavailable.push({name:tool.name,reason:'desktop-only; use mc_export_bbmodel in Web'});continue;}
     if(!options.advanced&&ADVANCED.has(tool.name)){unavailable.push({name:tool.name,reason:'enable Advanced tools locally and reconnect'});continue;}
     registry.add(tool);
@@ -20,7 +22,7 @@ export function createRuntime(options:{desktop?:boolean;advanced?:boolean}={}) {
   for(const tool of importTools())registry.add(tool);
   for(const tool of craftengineTools())registry.add(tool);
   registry.add(zodTool('mc_status','Inspect this connection, available tool families, project and engine authoring profile.',z.object({}).strict(),()=>({
-    name:'Minecraft Blockbench MCP',version:'0.1.0-alpha.8',mode:options.desktop?'desktop':'web',
+    name:'Minecraft Blockbench MCP',version:'0.1.0-alpha.9',mode:options.desktop?'desktop':'web',
     project:(globalThis as any).Project?{name:(globalThis as any).Project.name,uuid:(globalThis as any).Project.uuid,format:(globalThis as any).Format?.id}:null,
     toolCount:registry.definitions.size,unavailable,targets:['BetterModel','ModelEngine','CraftEngine'],runtimeVerified:false,
   }),{annotations:{readOnlyHint:true}}));
