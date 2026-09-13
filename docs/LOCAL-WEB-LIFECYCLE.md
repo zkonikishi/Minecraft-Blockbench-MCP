@@ -39,3 +39,17 @@ supervisor to restart it and the editor to reconnect without a UI action. SDK
 initialize/list/status then returned 206 tools and Web mode. Existing model
 files and the recovery prompt were left untouched. This is a local hotfix over
 Alpha 5, not a newly published GitHub release.
+
+## Missing Web build directory
+
+If the editor listens but logs `Failed to create output directory`, inspect its
+`dist` junction. On this local host it targets
+`D:/Servers/AI/Data/Codex/builds/blockbench-web-host`. Restore a missing target
+and run `node build.js --target=web` in the host checkout. Preserve the junction
+and all model files. The local supervisor now creates the target at startup.
+This operational repair does not change the Alpha 8 release.
+
+Verify the editor page, `dist/bundle.js`, and plugin asset separately. HTTP 200
+proves asset availability; only a successful `mc_status` proves editor connection.
+Browser-control errors are separate from relay availability. The local probe now
+reports disconnection without an uncaught exception, with a nonzero exit code.
