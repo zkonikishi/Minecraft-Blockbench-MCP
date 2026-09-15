@@ -11,23 +11,33 @@ let generation=0;
 let loaded=false;
 let retry:ReturnType<typeof setTimeout>|null=null;
 let retryDelay=1000;
+let settingsTimer:ReturnType<typeof setTimeout>|null=null;
 const disposables:{delete:()=>void}[]=[];
 function cleanup(){loaded=false;disconnect();for(const item of disposables.splice(0))item.delete();return draining;}
 G[`${ID}_cleanup`]=cleanup;
 const setting=(key:string)=>G.settings?.[`${ID}_${key}`]?.value;
 function message(text:string){G.Blockbench?.showQuickMessage?.(text,4000);}
 function disconnect(){
+  if(settingsTimer!==null){clearTimeout(settingsTimer);settingsTimer=null;}
   if(retry!==null){clearTimeout(retry);retry=null;}
   generation++;
   if(runtime){runtime.stop();draining=runtime.drain();runtime=null;}
   socket?.close();socket=null;
+}
+// Settings are often entered after onload. Reconnect once after the settings
+// batch settles; do not require a separate Connect action or reload.
+function settingsChanged(){
+  if(!loaded)return;
+  disconnect();retryDelay=1000;
+  if(!setting('autoconnect'))return;
+  settingsTimer=setTimeout(()=>{settingsTimer=null;if(loaded&&setting('autoconnect'))void connect();},250);
 }
 async function connect(){
   disconnect();const ticket=generation;
   await draining;
   if(!loaded||ticket!==generation)return;
   const token=String(setting('token')||'');
-  if(token.length<16){message('Set an MCP token of at least 16 characters in Settings first.');return;}
+  if(token.length<16||token==='REPLACE_WITH_YOUR_RANDOM_TOKEN'){message('Set your private MCP token in Settings; auto-connect will run when saved.');return;}
   const address=String(setting('relay')||'ws://127.0.0.1:39800/bridge');
   let url:URL;
   try{url=new URL(address);}catch{message('Invalid MCP bridge URL');return;}
@@ -51,7 +61,7 @@ async function connect(){
     ws.onclose=event=>{
       current.stop();
       if(socket!==ws||ticket!==generation)return;
-      socket=null;message('Minecraft Blockbench MCP disconnected');
+      socket=null;message(event.code===1008?'MCP connection rejected. Check the token or another connected editor; saving corrected settings reconnects automatically.':'Minecraft Blockbench MCP disconnected; auto-connect will retry if enabled.');
       // Policy/authentication rejection includes another editor owning the relay.
       // Do not compete with it or retry an invalid credential indefinitely.
       if(loaded&&setting('autoconnect')&&event.code!==1008){
@@ -68,13 +78,16 @@ G.Plugin.register(ID,{
   onload(){
     loaded=true;
     for(const [key,options] of Object.entries({
-      relay:{value:'ws://127.0.0.1:39800/bridge',type:'text',name:'Minecraft MCP bridge URL',description:'Local relay address. Reconnect after changing.'},
-      token:{value:'',type:'password',name:'Minecraft MCP token',description:'Use the same secret token as your local relay. Reconnect after changing.'},
-      advanced:{value:false,type:'toggle',name:'Minecraft MCP advanced tools',description:'Enable script execution and general UI/plugin operations. Reconnect after changing.'},
+      relay:{value:'ws://127.0.0.1:39800/bridge',type:'text',name:'Minecraft MCP bridge URL',description:'Local relay address. Automatically reconnects when auto connect is enabled.'},
+      token:{value:'',type:'password',name:'Minecraft MCP token',description:'Use the same secret token as your local relay. Automatically connects when saved and auto connect is enabled.'},
+      advanced:{value:false,type:'toggle',name:'Minecraft MCP advanced tools',description:'Enable script execution and general UI/plugin operations. Refreshes the connection when auto connect is enabled.'},
       autoconnect:{value:true,type:'toggle',name:'Minecraft MCP auto connect',description:'Connect to your configured loopback relay when the plugin loads.'},
     })) {
       const id=`${ID}_${key}`;
       if(!G.settings?.[id])new G.Setting(id,{category:'general',...options});
+      const entry=G.settings[id],oldChange=entry.onChange;
+      entry.onChange=settingsChanged;
+      disposables.push({delete(){if(entry.onChange===settingsChanged)entry.onChange=oldChange;}});
     }
     const add=(id:string,name:string,click:()=>void)=>{
       G.BarItems?.[id]?.delete();

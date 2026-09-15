@@ -33,3 +33,17 @@ test('plugin replacement releases old instance and leaves one action pair',async
 test('disabled auto-connect does not open a socket and immediate unload cancels pending connect',async()=>{
  const h=host(false);vm.runInContext(code,h.context);h.context.plugin.onload();await settle();assert.equal(h.sockets.length,0);h.settings.minecraft_blockbench_mcp_autoconnect.value=true;h.context.plugin.onload();h.context.plugin.onunload();await settle();assert.equal(h.sockets.length,0);
 });
+test('saving a token after load auto-connects once and batches setting updates',async()=>{
+ const pending=new Map();let next=0;
+ const h=host(true,{setTimeout(fn){const id=++next;pending.set(id,fn);return id;},clearTimeout(id){pending.delete(id);}});
+ h.settings.minecraft_blockbench_mcp_token.value='';vm.runInContext(code,h.context);h.context.plugin.onload();await settle();assert.equal(h.sockets.length,0);
+ h.settings.minecraft_blockbench_mcp_token.value='new-test-token-not-a-secret';h.settings.minecraft_blockbench_mcp_token.onChange();h.settings.minecraft_blockbench_mcp_relay.onChange();assert.equal(pending.size,1);
+ const fn=[...pending.values()][0];pending.clear();fn();await settle();assert.equal(h.sockets.length,1);
+ h.settings.minecraft_blockbench_mcp_autoconnect.value=false;h.settings.minecraft_blockbench_mcp_autoconnect.onChange();assert(h.sockets[0].closed);assert.equal(pending.size,0);h.context.plugin.onunload();
+});
+test('correcting credentials after rejection reconnects; unloading removes callbacks',async()=>{
+ const pending=new Map();let next=0;const h=host(true,{setTimeout(fn){const id=++next;pending.set(id,fn);return id;},clearTimeout(id){pending.delete(id);}});
+ vm.runInContext(code,h.context);h.context.plugin.onload();await settle();h.sockets[0].onclose({code:1008});assert.equal(pending.size,0);
+ h.settings.minecraft_blockbench_mcp_token.value='corrected-test-token';h.settings.minecraft_blockbench_mcp_token.onChange();const fn=[...pending.values()][0];pending.clear();fn();await settle();assert.equal(h.sockets.length,2);
+ h.context.plugin.onunload();assert.equal(h.settings.minecraft_blockbench_mcp_token.onChange,undefined);
+});
