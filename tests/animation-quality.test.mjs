@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runtime} from './helpers.mjs';
-import {frameTimes,playerHtml} from '../scripts/animation-review-lib.mjs';
+import {frameTimes,playerHtml,playbackIndex} from '../scripts/animation-review-lib.mjs';
 const key=(time,x)=>({time,channel:'rotation',interpolation:'linear',data_points:[{x,y:0,z:0}]});
 const fixture=()=>({name:'walk',length:1,loop:'loop',animators:{root:{type:'bone',keyframes:[key(0,0),key(.5,20),key(1,0)]}}});
 const options={source:'root',chains:[{bones:['neck','head'],offset:0,amplitude:1}],delay:.1,gain:.8,fps:20,name:'walk_variant'};
@@ -22,6 +22,10 @@ test('diagnostics flag seam, jump, duplicate, empty and unevaluated tracks witho
 });
 test('identical tracks are diagnostic hints',()=>{const clip=fixture();clip.animators.copy=structuredClone(clip.animators.root);assert.ok(runtime.diagnoseAnimation(clip).findings.some(f=>f.code==='IDENTICAL_TRACKS'));});
 test('continuous frame plan has bounded count and exact endpoint',()=>{assert.equal(frameTimes(1).length,25);assert.equal(frameTimes(60).length,241);assert.equal(frameTimes(.3).at(-1),.3);assert.throws(()=>frameTimes(0));});
+test('playback uses elapsed time instead of drifting one frame per display refresh',()=>{
+ const times=frameTimes(1);assert.equal(playbackIndex(times,25,.5),12);assert.equal(playbackIndex(times,25,1),0);assert.equal(playbackIndex(times,25,10.5),12);assert.equal(playbackIndex([],0,1),0);
+ for(const fps of [0,-1,Infinity,NaN,121])assert.throws(()=>frameTimes(1,fps));
+});
 test('player escapes embedded script termination and supports incomplete captures',()=>{const html=playerHtml({times:[0],frames:['</script>']});assert.ok(html.includes('\\u003c/script>'));assert.ok(playerHtml({times:[],frames:[]}).includes('Play / Pause'));});
 test('chain tool defaults dry-run; apply uses new animation and one Undo transaction',async()=>{
  const data=fixture(),original={uuid:'original',name:'walk',getUndoCopy:()=>structuredClone(data)};let writes=0,finishes=0;
