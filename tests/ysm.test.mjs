@@ -36,3 +36,29 @@ test('YSM parser artifacts match the pinned release manifest',()=>{
  const base=new URL('../vendor/ysmparser/',import.meta.url);const manifest=JSON.parse(readFileSync(new URL('provenance.json',base),'utf8'));
  for(const [name,hash] of Object.entries(manifest.files))assert.equal(createHash('sha256').update(readFileSync(new URL(name,base))).digest('hex'),hash);
 });
+
+
+test('spec-2 bindings isolate projectile animation and texture from player',()=>{
+ const files=assets();const geometry=JSON.parse(Buffer.from(files[0].data,'base64'));files.push(json('arrow.json',geometry));
+ files.push(json('ysm.json',{files:{player:{model:{main:'main.json'},animation:{main:'main.animation.json'},texture:[{uv:'normal.png'}]},projectiles:{arrow:{model:'arrow.json',animation:'arrow.animation.json',texture:'arrow.png'}}}}));
+ files.push(json('arrow.animation.json',{animations:{spin:{bones:{body:{rotation:[0,1,0]}}}}}));files.push({path:'arrow.png',data:'iVBORw0KGgo='});
+ const r=convertAssets(files);const arrow=r.models.find(m=>m.filename==='arrow_0.bbmodel').model;
+ assert.deepEqual(arrow.animations.map(a=>a.name),['spin']);assert.equal(arrow.textures[0].name,'arrow.png');assert.equal(r.report.bindings.find(b=>b.model==='arrow.json').role,'arrow');
+});
+
+test('negative sizes retain directed bounds rather than aborting or silently taking absolute size',()=>{
+ const files=assets();const j=JSON.parse(Buffer.from(files[0].data,'base64'));j['minecraft:geometry'][0].bones[0].cubes[0].size=[2,-3,4];files[0]=json('main.json',j);
+ const r=convertAssets(files);const cube=r.models[0].model.elements[0];assert.equal(cube.to[1]-cube.from[1],-3);assert(r.report.issues.some(i=>i.includes('negative cube size')));
+});
+
+test('sound particle and timeline events survive recovery without claiming playback',()=>{
+ const files=assets();files[1]=json('main.animation.json',{animations:{events:{sound_effects:{'0.2':{effect:'bell'}},particle_effects:{'0.3':{effect:'spark',locator:'hand',pre_effect_script:'v.a=1;'}},timeline:{'0.4':['v.b=1;','v.c=2;']}}}});
+ const r=convertAssets(files);const keyframes=r.models[0].model.animations[0].animators.effects.keyframes;
+ assert.deepEqual(keyframes.map(k=>k.channel),['sound','particle','timeline']);assert.equal(keyframes[1].data_points[0].script,'v.a=1;');assert.equal(keyframes[2].data_points[0].script,'v.b=1;\nv.c=2;');assert.equal(r.report.molangEvaluated,false);
+});
+
+
+test('texture pixel dimensions remain separate from geometry UV dimensions',()=>{
+ const files=assets();const header=Buffer.alloc(24);Buffer.from('89504e470d0a1a0a','hex').copy(header);header.write('IHDR',12);header.writeUInt32BE(128,16);header.writeUInt32BE(64,20);files[2].data=header.toString('base64');
+ const m=convertAssets(files).models[0].model;assert.equal(m.textures[0].width,128);assert.equal(m.textures[0].height,64);assert.equal(m.textures[0].uv_width,16);assert.equal(m.resolution.width,16);
+});
