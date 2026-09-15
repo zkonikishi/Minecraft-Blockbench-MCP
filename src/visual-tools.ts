@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {zodTool,normalizeResult,type ToolDefinition,type ToolResult} from './registry.js';
-import {visualDetailTool} from './visual-detail.js';
+import {visualDetailTool,frameSchema} from './visual-detail.js';
 
 const views=z.array(z.enum(['iso','north','south','east','west','up','down'])).min(1).max(7).default(['iso','north','east']);
 const captureSchema=z.object({views,max_edge:z.number().int().min(64).max(1024).default(512),render:z.enum(['current','textured','solid','wireframe']).default('current')}).strict();
@@ -38,7 +38,7 @@ export function visualTools(definitions:Map<string,ToolDefinition>) {
       const result=await invoke(a.kind==='uv'?'craft_get_uv_map':'anim_get_texture',a.kind==='uv'?{texture:a.texture,max_edge:a.max_edge,labels:true}:{texture:a.texture});
       if(!result.content.some(c=>c.type==='image'))throw Error('Texture backend returned no image');return result;
     }),
-    zodTool('mc_visual_animation','Sample exact animation times and return labelled PNG views. Restores selected animation, timeline and mode when the project is unchanged. Does not verify effect or game playback.',z.object({animation:z.string().min(1).max(256),times:z.array(z.number().nonnegative()).min(1).max(8),views,max_edge:z.number().int().min(64).max(512).default(256)}).strict(),async a=>{
+    zodTool('mc_visual_animation','Sample exact animation times and return labelled PNG views. Restores selected animation, timeline and mode when the project is unchanged. Does not verify effect or game playback.',z.object({animation:z.string().min(1).max(256),times:z.array(z.number().nonnegative()).min(1).max(8),frame:frameSchema.optional(),views,max_edge:z.number().int().min(64).max(512).default(256)}).strict(),async a=>{
       const g=G(),project=g.Project;if(!project)throw Error('Open a project first');
       if(g.Timeline?.playing)throw Error('Pause playback before visual sampling');
       const matches=(g.Animation?.all||[]).filter((v:any)=>v.uuid===a.animation||v.name===a.animation);
@@ -49,7 +49,7 @@ export function visualTools(definitions:Map<string,ToolDefinition>) {
       try{for(const time of a.times as number[]){
         if(project!==g.Project)throw Error('Project changed during sampling');
         await invoke('mc_preview_animation',{animation:matches[0].uuid,time});
-        const result=await capture({...a,render:'current'});
+        const result=a.frame?await invoke('mc_visual_detail',{frame:a.frame,views:a.views,max_edge:a.max_edge}):await capture({...a,render:'current'});
         content.push(metadata({animation:a.animation,time,views:a.views,visualVerified:false,clientVerified:false}),...result.content);
       }return {content};}
       finally{if(project===g.Project){previous.animation?.select();g.Timeline.setTime(previous.time);if(previous.mode)g.Modes.options[previous.mode]?.select();if(previous.mode==='animate'){g.Animator.preview();g.TextureAnimator?.playAnimationFrame(previous.time);}}}
