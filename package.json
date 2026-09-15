@@ -18,16 +18,16 @@
     "start": "node --env-file-if-exists=.env relay/cli.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "ajv": "8.20.0",
+    "ws": "8.21.3",
     "zod": "3.25.76",
-    "zod-to-json-schema": "3.25.1",
-    "ajv": "8.17.1",
-    "ws": "8.18.3",
-    "@modelcontextprotocol/sdk": "1.25.3"
+    "zod-to-json-schema": "3.25.1"
   },
   "devDependencies": {
+    "@types/node": "22.19.0",
     "esbuild": "0.25.12",
-    "typescript": "5.9.3",
-    "@types/node": "22.19.0"
+    "typescript": "5.9.3"
   },
   "repository": {
     "type": "git",

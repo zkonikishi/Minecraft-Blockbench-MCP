@@ -11,7 +11,7 @@ function equal(a,b){if(typeof a!=='string'||typeof b!=='string')return false;con
 
 /** A loopback MCP endpoint shared by the desktop and Web plugin. */
 export async function startRelay({token,port=39800,requestTimeout=120000,pluginFile,maxPayload=128*1024*1024}={}) {
-  if(typeof token!=='string'||token.length<16)throw new Error('MINECRAFT_BLOCKBENCH_TOKEN must be at least 16 characters');
+  if(typeof token!=='string'||token.length<16||token==='REPLACE_WITH_YOUR_RANDOM_TOKEN')throw new Error('MINECRAFT_BLOCKBENCH_TOKEN must be a private token of at least 16 characters, not the example placeholder');
   if(!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid loopback port');
   if(!Number.isSafeInteger(maxPayload)||maxPayload<1024||maxPayload>256*1024*1024)throw new Error('Invalid bridge payload limit');
   const origins=new Set(['https://web.blockbench.net','https://www.blockbench.net','https://blockbench.net','null','file://']);

@@ -7,6 +7,7 @@ import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/st
 import {startRelay} from '../relay/server.mjs';
 const token='test-only-token-not-a-deployed-secret';
 const catalogue=[{name:'test_tool',description:'mock host probe',inputSchema:{type:'object'}}];
+test('example token cannot start a deployed relay',async()=>{await assert.rejects(startRelay({token:'REPLACE_WITH_YOUR_RANDOM_TOKEN',port:0}),/placeholder/);});
 test('SDK preserves exports exceeding the old 16 MiB bridge limit',async()=>{
  const relay=await startRelay({token,port:0});let ws,client;
  const payload='x'.repeat(17*1024*1024);

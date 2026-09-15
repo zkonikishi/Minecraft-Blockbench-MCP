@@ -7,6 +7,8 @@
 
 **当前发布：Alpha 10 · 开发分支 `Alpha` · 中文文档 / English overview below**
 
+当前进入[发布收尾](docs/RELEASE-GATES.md)，冻结新功能。RC/正式版以实机及安装包验收为准，不以工具数量或单元测试代替。
+
 [下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 10 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.10) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
 一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 10 提供 **235 个默认 Web 编辑器工具 + 2 个离线 YSM 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
