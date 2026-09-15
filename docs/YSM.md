@@ -47,6 +47,22 @@ node scripts/convert-model.mjs "D:/models/example.ysm" "D:/models/recovered-alt"
 
 ## 验证
 
+### 可选的可视化取证
+
+开发分支提供独立脚本，不改变离线恢复接口，也不需要额外视觉服务：
+
+```powershell
+node --env-file=.env scripts/review-ysm.mjs D:/models/main_0.bbmodel D:/reviews/new-review --confirm-new-project
+```
+
+先连接 Blockbench 编辑器及 relay，配置 `MINECRAFT_BLOCKBENCH_TOKEN`（可选 `MINECRAFT_BLOCKBENCH_URL`）。输入为恢复得到的、贴图内嵌的 `.bbmodel`，输出目录的父目录必须存在，输出目录本身必须不存在。
+
+- 原生导入到新工程，旧工程保持打开；运行期间不要操作编辑器。跨调用检测到工程切换就停止，不自动重试。检测并非跨调用事务锁，无法排除用户同时切换的竞态。
+- 静止姿态及前三个有效非零时长动画的 0%、25%、50%、75% 时刻，各采集 iso/north/east 三张 512 像素 PNG，最多 39 张。其余动画不属于本次覆盖范围。
+- 输出 `index.html`、图片及包含源模型 SHA-256 的 `review.json`；仅当新工程仍被选中才恢复 Edit 模式。新工程保留供检查，不自动保存或关闭。
+- `captureComplete` 只代表截图采集完成。`visualVerified:false`、`clientVerified:false` 始终保留：需要人工或视觉模型检查贴图、轮廓、转轴、穿模；没有参考图就不能声称和原模型相似。此流程不验证 YSM 控制器、声音、粒子或游戏运行效果。
+- 失败时保留已采集证据和错误报告；重新运行必须使用新的输出目录。
+
 三类容器各一个样本通过解析和 bbmodel 生成。一个 V2 样本在 Blockbench Web 5.1.6 原生导入成功：9 个元素、1 张贴图、12 个动画、436 个关键帧，编辑器中可见带贴图的模型。此记录不代表 Minecraft 客户端、YSM 游戏内行为或所有动画已验收。
 
 整合测试覆盖坐标/UV、隐藏面、关键帧 pre/post、非均匀缩放、错误层级、坏输入、制品哈希，以及已有 MCP/引擎工具回归。另用无编辑器连接的隔离 MCP 服务实测 `mc_ysm_recover` 成功。
