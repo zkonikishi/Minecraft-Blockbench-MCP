@@ -13,6 +13,10 @@
 
 ## Alpha 10：YSM 离线恢复
 
+### Alpha 开发分支：全局视觉工具
+
+新增 **6 个公共视觉工具**，覆盖多视角/线框、局部特写与骨骼叠加、贴图/UV、动画逐帧和前后对比，不限 YSM 或任何模型引擎。`scripts/review-model.mjs` 输出通用 HTML 图册；原 YSM 命令保留兼容。见 [视觉工作流](docs/VISUAL.md)。这些是 Alpha 分支更新，尚未包含在既有 Alpha 10 发布包中；编辑器实机验收另行记录，图片采集不代表视觉或游戏验收通过。
+
 新增 `mc_ysm_inspect` / `mc_ysm_recover` 和离线 CLI：从 `.ysm` 恢复 `.bbmodel`、贴图与骨骼动画，保留原始资源并输出差异报告。无需启动 Minecraft、YSM Mod 或编辑器。已验证 V1、V2、BOM V3 各一个样本；不承诺无损或全部版本覆盖。见 [YSM 使用说明](docs/YSM.md)。
 
 ## Alpha 9 更新
