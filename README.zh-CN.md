@@ -85,6 +85,10 @@ npm.cmd start
 也可使用发布页的运行 ZIP：解压、安装依赖并配置 `.env` 后启动，包内已有编译好的
 `dist/minecraft_blockbench_mcp.js`。单独下载插件 JS 不能代替本地服务。
 
+发布页会为每个产物列出 SHA-256 摘要，因此无需额外的校验文件即可核对下载。ZIP 包内的
+`manifest.json` 记录了全部 156 个文件的 SHA-256，`dist/SHA256SUMS` 覆盖插件 bundle；
+安装依赖后可执行 `node scripts/verify-release.mjs <解压目录>` 重新校验整份清单。
+
 ### 2. 连接 Blockbench
 
 1. 打开 **文件 → 插件 → 从文件加载插件**，选择 `dist/minecraft_blockbench_mcp.js`。

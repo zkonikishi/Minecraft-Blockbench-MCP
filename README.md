@@ -94,6 +94,12 @@ configure `.env` and start — it already contains a compiled
 `dist/minecraft_blockbench_mcp.js`. Downloading the plugin JS alone does not replace
 the local service.
 
+The release page lists a SHA-256 digest for every uploaded asset, so a download can be
+checked without a separate checksum file. Inside the ZIP, `manifest.json` records a
+SHA-256 for all 156 packaged files and `dist/SHA256SUMS` covers the plugin bundle;
+after installing dependencies, `node scripts/verify-release.mjs <unpacked-directory>`
+re-checks the whole manifest.
+
 ### 2. Connect Blockbench
 
 1. Open **File → Plugins → Load Plugin from File** and select
