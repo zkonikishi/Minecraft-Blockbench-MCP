@@ -26,7 +26,7 @@ export async function stageRelease(output,build=resolve(root,'dist')){
   if(!stat.isFile())throw Error('Unsupported release file type');
   await copyFile(source,destination);const bytes=await readFile(destination);manifest.push({path:relative(output,destination).replaceAll('\\','/'),bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
  }
- for(const name of ['package.json','package-lock.json','.env.example','README.md','LICENSE','THIRD_PARTY_NOTICES.md','relay','scripts','docs'])await copy(join(root,name),join(output,name));
+ for(const name of ['package.json','package-lock.json','.env.example','README.md','README.zh-CN.md','LICENSE','THIRD_PARTY_NOTICES.md','relay','scripts','docs'])await copy(join(root,name),join(output,name));
  await mkdir(join(output,'src'));await copy(join(root,'src/converters'),join(output,'src/converters'));
  await mkdir(join(output,'vendor'));await copy(join(root,'vendor/ysmparser'),join(output,'vendor/ysmparser'));
  await copy(build,join(output,'dist'));

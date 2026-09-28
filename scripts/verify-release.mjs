@@ -9,7 +9,7 @@ const manifest=JSON.parse(await readFile(join(root,'manifest.json'),'utf8'));
 // Files a release must carry: the bundle, the distributed licenses/checksums that
 // build.mjs emits into dist/, and the third-party notices the bundle relies on.
 const required=[
- 'package.json','package-lock.json','LICENSE','THIRD_PARTY_NOTICES.md','README.md',
+ 'package.json','package-lock.json','LICENSE','THIRD_PARTY_NOTICES.md','README.md','README.zh-CN.md',
  'relay/server.mjs','relay/cli.mjs','relay/ysm-tools.mjs',
  'dist/minecraft_blockbench_mcp.js','dist/LICENSE','dist/THIRD_PARTY_NOTICES.md','dist/SHA256SUMS',
  'dist/licenses/sosadly-MIT.txt','dist/licenses/dependency-inventory.json',

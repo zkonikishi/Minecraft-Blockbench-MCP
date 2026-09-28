@@ -1,75 +1,76 @@
 # Minecraft Blockbench MCP
 
-让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，并对接 **BetterModel、ModelEngine、CraftEngine**。
-
 [![Release](https://img.shields.io/github/v/release/zkonikishi/Minecraft-Blockbench-MCP?include_prereleases)](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-**当前发布：Alpha 10 · 开发分支 `Alpha` · 中文文档 / English overview below**
+**English** | [简体中文](README.zh-CN.md)
 
-当前进入[发布收尾](docs/RELEASE-GATES.md)，冻结新功能。RC/正式版以实机及安装包验收为准，不以工具数量或单元测试代替。
+**Current release: `1.0.0-rc.1` (release candidate).** Every automated gate passes:
+type checking, build, 85 project regression tests, 117 upstream tests, a clean
+production dependency audit, and staged-release verification. **Real-editor and
+in-game acceptance is not finished yet** — see [release gates](docs/RELEASE-GATES.md).
+A final `1.0.0` is published only after those gates pass.
 
-[下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 10 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.10) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
+Let AI author Minecraft models, textures and skeletal animation in **Blockbench
+Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
 
-一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。发布标签 `v0.1.0-alpha.10` 的发布包为 **235 个默认 Web 编辑器工具**；当前 `Alpha` 分支已包含未发布的上游同步（Jason v1.9.3）与视觉工具，为 **254 个默认 Web 工具**（启用 Advanced 后 261 个），快速开始中的 `--branch Alpha` 克隆得到的是后者。relay 另提供 2 个离线 YSM 工具（`mc_ysm_inspect`、`mc_ysm_recover`），因此默认 Web 情况下客户端 `tools/list` 看到 **256 个**；桌面版默认 **267 个**，启用 Advanced 后 274 个。桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+One Blockbench plugin, one local MCP service, one shared serial execution queue. The
+current `Alpha` branch exposes **254 default Web editor tools** (**261** with Advanced
+enabled) plus **2 offline YSM tools**, so a default Web client's `tools/list` sees
+**256**. Desktop exposes **267** (**274** with Advanced) and adds file-related
+capabilities. Actual availability is whatever `tools/list` returns after connecting.
 
-## Alpha 10：YSM 离线恢复
+## What is in this release
 
-Alpha 分支新增 [动画质量流程](docs/ANIMATION-QUALITY.md)：只读动画诊断、带 dry-run 的多骨骼链/多头变体、可播放和拖动的连续帧图册。原动作保留，不把自动复制动作视为专业动画设计或游戏内验收。
+- **Upstream sync.** Jason `blockbench-mcp-plugin` v1.9.3, sosadly `blockbench-mcp`
+  and OpenYSM/YSMParser v0.3.6 are pinned at their current commits; SwagRee is
+  already at its latest. The vendored trees are byte-identical to those commits.
+- **Verifiable packaging.** A staged release now carries the 98-file dependency
+  license inventory, `SHA256SUMS`, the GPL text and the third-party notices, and the
+  verification gate fails if any of them is missing.
+- **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
+  own SHA-256 over 273 files, so the snapshot can be re-checked against upstream.
+- **Single-sourced version.** The plugin, the relay and `mc_status` all derive their
+  version from `package.json`.
+- **Offline YSM recovery.** `mc_ysm_inspect` / `mc_ysm_recover` and a CLI recover
+  `.bbmodel`, textures and bone animation from `.ysm` containers without Minecraft,
+  the mod, or an editor.
+- **Animation and visual review.** Read-only animation diagnostics, dry-run bone
+  chain variants, playable frame atlases, and six shared visual tools (multi-view,
+  framing, texture/UV, animation frames, before/after comparison).
 
-### Alpha 开发分支：全局视觉工具
+## What you can do
 
-新增 **6 个公共视觉工具**，覆盖多视角/线框、局部特写与骨骼叠加、贴图/UV、动画逐帧和前后对比，不限 YSM 或任何模型引擎。`scripts/review-model.mjs` 输出通用 HTML 图册；原 YSM 命令保留兼容。见 [视觉工作流](docs/VISUAL.md)。这些是 Alpha 分支更新，尚未包含在既有 Alpha 10 发布包中；编辑器实机验收另行记录，图片采集不代表视觉或游戏验收通过。
-
-### Alpha 开发分支：上游同步
-
-同步上游至当前版本：**Jason v1.9.3**（`6295e20a`，工具面增加 11 个，新增 headless server、粒子工具与 PBR 材质等上游能力，本集成只取其工具依赖闭包）、**sosadly** `028cdd76`（仅文档与 package.json）、**OpenYSM/YSMParser v0.3.6**（`86c48922`，修复 v3 解析器崩溃）；SwagRee 快照 `b99e581d` 未变。`vendor/` 与上游固定提交逐字节一致，校验见 `upstream-lock.json` 与 `vendor/ysmparser/provenance.json`。
-
-上游 1.9.3 使用了更多 Blockbench 原生 API（`Animator.getBoneAnimator`、`Keyframe.set`、`Animation.setLength`、`Undo.cancelEdit`），本仓库的测试 mock 已按真实 API 形状更新。**本次同步只扩展既有工具族，不注册上游新增的工具族**；插件 bundle 由约 1.40 MB 增至约 1.76 MB。尚未在真实编辑器与游戏客户端验收。
-
-新增 `mc_ysm_inspect` / `mc_ysm_recover` 和离线 CLI：从 `.ysm` 恢复 `.bbmodel`、贴图与骨骼动画，保留原始资源并输出差异报告。无需启动 Minecraft、YSM Mod 或编辑器。已验证 V1、V2、BOM V3 各一个样本；不承诺无损或全部版本覆盖。见 [YSM 使用说明](docs/YSM.md)。
-
-## Alpha 9 更新
-
-同步 Jason v1.7.0 与 sosadly 2026-09-12 快照，SwagRee 快照保持不变。
-
-- 新增 `studio_get_display_transform`、`studio_set_display_transform`、`studio_enter_display_mode`，用于物品展示设置。
-- 新增 `anim_add_wing`，生成翅膀骨骼与翼膜；同时更新上游骨架、动作与模型检查能力。
-- 修复 studio 关键帧数值、非均匀缩放与零值编辑，以及贴图渲染设置保留。
-- 修复异步 codec 导出；新增桌面专用 `anim_export_model`。
-- 脚本执行继续受本地 Advanced 开关控制；依赖上游 Copilot 面板的三个交互工具不注册。
-
-详见 [Alpha 9 更新与验证](docs/ALPHA9.md)。
-
-## 可以做什么
-
-| 方向 | 当前能力 |
+| Area | Current capability |
 | --- | --- |
-| 生物建模 | 立方体与网格编辑、多层骨骼、翅膀、尾巴、下颚、挂点和可编辑骨架草模 |
-| 贴图与预览 | UV 排布、像素绘制、多视角截图、按当前动画姿态取景 |
-| 骨骼动画 | 关键帧、镜像与相位、Molang/Bezier 数据、IK 控制点、姿态预览 |
-| BetterModel / ModelEngine | 引擎规范检查、碰撞箱与眼高、骨骼标签、分别导出内嵌贴图的 `.bbmodel` |
-| CraftEngine | 静态物品与家具蓝图、动态家具的引擎模型引用、资源包合并配置方案 |
-| 模型导入 | 原生 `.bbmodel` JSON 导入；OptiFine CEM/JEM 几何与 UV 导入，保留已有工程 |
-| 连接与大文件 | 自动重连、共享执行队列、128 MiB 桥接响应上限 |
+| Creature modelling | Cube and mesh editing, multi-level bones, wings, tails, jaws, attachment points, editable skeleton drafts |
+| Textures and preview | UV layout, pixel painting, multi-view screenshots, framing from the current animated pose |
+| Skeletal animation | Keyframes, mirroring and phase, Molang/Bezier data, IK control points, pose preview |
+| BetterModel / ModelEngine | Engine rule checks, hitbox and eye height, bone tags, per-engine `.bbmodel` export with embedded textures |
+| CraftEngine | Static item and furniture blueprints, engine model references for dynamic furniture, resource-pack merge plans |
+| Model import | Native `.bbmodel` JSON import; OptiFine CEM/JEM geometry and UV import that preserves the existing project |
+| Connection and large files | Automatic reconnect, shared execution queue, 128 MiB bridge response limit |
 
-骨架模板是制作起点，动画槽需要写入真实关键帧。寻路、战斗 AI 和技能逻辑仍由游戏或服务器插件负责。
+Skeleton templates are a starting point; animation slots still need real keyframes.
+Pathfinding, combat AI and skill logic remain the job of the game or server plugin.
 
-## 引擎支持范围
+## Engine support scope
 
-| 目标 | MCP 负责 | 运行时依赖与边界 |
+| Target | What this MCP does | Runtime dependency and boundary |
 | --- | --- | --- |
-| BetterModel | 生物骨骼、动画制作、规范检查与模型导出 | 服务器安装 BetterModel；行为与技能由服务器侧实现 |
-| ModelEngine | 生物骨骼、动画、碰撞箱、标签检查与模型导出 | 服务器安装 ModelEngine；具体特性按目标版本检查 |
-| CraftEngine | 静态物品 / 家具蓝图、动态家具模型引用与资源包合并方案 | CE 负责生成与分发资源包；动态模型依赖 BetterModel / ModelEngine |
-| YSM | 离线容器解析、bbmodel 恢复与差异报告 | 已验证三个容器族代表样本，运行时语义有边界 |
-| 时装工坊 | 已登记离线恢复路线 | 当前没有转换器或可用导入接口 |
+| BetterModel | Creature bones, animation authoring, rule checks, model export | BetterModel on the server; behaviour and skills are implemented server-side |
+| ModelEngine | Creature bones, animation, hitbox, tag checks, model export | ModelEngine on the server; verify features against your target version |
+| CraftEngine | Static item / furniture blueprints, dynamic furniture model references, pack merge plans | CE generates and distributes the resource pack; dynamic models depend on BetterModel / ModelEngine |
+| YSM | Offline container parsing, bbmodel recovery, difference reports | Verified on one representative sample per container family; runtime semantics are bounded |
+| Armourer's Workshop | Offline recovery route is registered | No converter or usable import interface yet |
 
-## 快速开始
+## Quick start
 
-需要 **Node.js 22+**、**Blockbench 5.1+**，以及支持 **Streamable HTTP MCP + Bearer 请求头**的 AI 客户端。Web 编辑器同样需要本机运行 MCP 服务。
+Requires **Node.js 22+**, **Blockbench 5.1+**, and an AI client that supports
+**Streamable HTTP MCP with Bearer headers**. The Web editor also needs this MCP
+service running locally.
 
-### 1. 安装并启动服务
+### 1. Install and start the service
 
 ```powershell
 git clone --branch Alpha https://github.com/zkonikishi/Minecraft-Blockbench-MCP.git
@@ -80,28 +81,38 @@ Copy-Item .env.example .env
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-将生成的随机值填入 `.env` 的 `MINECRAFT_BLOCKBENCH_TOKEN`，然后启动：
+Put the generated value into `MINECRAFT_BLOCKBENCH_TOKEN` in `.env`, then start:
 
 ```powershell
 npm.cmd start
 ```
 
-也可使用发布页的运行 ZIP：解压、安装依赖并配置 `.env` 后启动，包内已有编译好的 `dist/minecraft_blockbench_mcp.js`。单独下载插件 JS 不能代替本地服务。
+You can also use the run ZIP from the releases page: unpack it, install dependencies,
+configure `.env` and start — it already contains a compiled
+`dist/minecraft_blockbench_mcp.js`. Downloading the plugin JS alone does not replace
+the local service.
 
-### 2. 连接 Blockbench
+### 2. Connect Blockbench
 
-1. 打开 **文件 → 插件 → 从文件加载插件**，选择 `dist/minecraft_blockbench_mcp.js`。
-2. 在设置中找到 **Minecraft MCP token**，填入与服务端相同的值。
-3. 保持 bridge URL 为 `ws://127.0.0.1:39800/bridge`。
-4. 点击 **工具 → Connect Minecraft MCP**。
+1. Open **File → Plugins → Load Plugin from File** and select
+   `dist/minecraft_blockbench_mcp.js`.
+2. Find **Minecraft MCP token** in the settings and enter the same value as the
+   server.
+3. Keep the bridge URL at `ws://127.0.0.1:39800/bridge`.
+4. Click **Tools → Connect Minecraft MCP**.
 
-Web 版使用相同的文件加载方式。Blockbench 的插件 URL 安装器不接受普通 HTTP 地址；文件安装的插件也不会自动跨页面重载持久保存。本地 Web 主机可参考[持久加载与重连说明](docs/LOCAL-WEB-LIFECYCLE.md)。
+The Web edition uses the same file-loading path. Blockbench's plugin URL installer
+does not accept plain HTTP; a file-loaded plugin is also not persisted across page
+reloads. See [persistent loading and reconnect](docs/LOCAL-WEB-LIFECYCLE.md) for a
+local Web host.
 
-升级时更新插件和 relay 源码，并重启 relay；已有 token 可继续使用。修改工具设置后重新连接并刷新客户端工具列表。
+When upgrading, update both the plugin and the relay sources and restart the relay;
+an existing token keeps working. Reconnect and refresh the client's tool list after
+changing tool settings.
 
-### 3. 配置 AI 客户端
+### 3. Configure your AI client
 
-以下是连接信息，不同客户端的配置字段可能不同：
+These are the connection details; field names differ between clients:
 
 ```json
 {
@@ -112,105 +123,149 @@ Web 版使用相同的文件加载方式。Blockbench 的插件 URL 安装器不
 }
 ```
 
-连接后调用 `mc_status` 检查版本、当前工程和工具数量。服务仅监听本机回环地址，云端客户端无法直接访问你电脑的 `127.0.0.1`。一个 relay 同时连接一个编辑器窗口。
+Call `mc_status` after connecting to check the version, the current project and the
+tool count. The service listens on the loopback interface only, so a cloud client
+cannot reach `127.0.0.1` on your machine. One relay serves one editor window.
 
-### 4. 确认真正连通
+### 4. Verify it really works
 
-MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个独立环节。以 `mc_status` 成功返回编辑器状态为准，单纯看到工具列表不代表可以操作模型。
+Starting the MCP service, the client discovering tools, and Blockbench connecting are
+three independent steps. Treat a successful `mc_status` that returns editor state as
+the signal; seeing a tool list alone does not mean you can edit a model.
 
-| 现象 | 检查方法 |
+| Symptom | What to check |
 | --- | --- |
-| 客户端无法连接 MCP | 确认本机服务正在运行、URL 与端口一致、Bearer token 正确 |
-| 能列出工具，但提示编辑器未连接 | 在 Blockbench 加载插件，核对 bridge URL 与 token，再执行 Connect Minecraft MCP |
-| Web 页面刷新后工具不可用 | 重新加载插件，或按本地 Web 主机说明配置持久加载 |
-| 另一编辑器窗口连接失败 | 一个 relay 只连接一个编辑器；先断开原窗口，或继续使用原窗口 |
-| 大模型操作超时 | 先检查编辑器中的工程与操作结果，避免重复导入或重复创建 |
+| Client cannot reach the MCP service | The service is running, the URL and port match, and the Bearer token is correct |
+| Tools list, but the editor is reported as disconnected | Load the plugin in Blockbench, check the bridge URL and token, then run Connect Minecraft MCP |
+| Tools stop working after a Web page reload | Reload the plugin, or configure persistent loading as described for the local Web host |
+| A second editor window fails to connect | One relay serves one editor; disconnect the first window or keep using it |
+| A model operation times out | Inspect the project and the result in the editor first, and avoid duplicate imports or duplicate creation |
 
-## 示例请求
+## Example requests
 
-连接后可以直接对 AI 描述目标，例如：
+Once connected you can describe a goal directly, for example:
 
-- “制作一个用于 BetterModel 的四足生物，包含下颚、尾巴骨骼和 idle / walk 动画，检查后导出。”
-- “检查当前模型是否符合 ModelEngine，列出骨骼、贴图和动画问题，修复后分别导出两个引擎版本。”
-- “把当前 Java Block 模型导出为 CraftEngine 静态家具内容包，并生成资源包合并方案。”
+- "Build a quadruped for BetterModel with jaw and tail bones and idle / walk
+  animations, check it, then export."
+- "Check whether the current model conforms to ModelEngine, list the bone, texture
+  and animation problems, fix them, and export both engine variants."
+- "Export the current Java Block model as a CraftEngine static furniture content pack
+  and generate the resource-pack merge plan."
 
-这些是制作任务示例，最终结果仍需预览与引擎验证；AI 不会仅凭骨架模板自动获得完整动作或战斗行为。
+These are authoring examples; results still need previewing and engine verification.
+AI does not get complete motion or combat behaviour from a skeleton template alone.
 
-## 三条制作流程
+## Three authoring workflows
 
-### BetterModel / ModelEngine 生物
+### BetterModel / ModelEngine creatures
 
-先调用 `mc_get_workflow`、`mc_engine_profile`，再创建或导入工程：
+Call `mc_get_workflow` and `mc_engine_profile` first, then create or import a project:
 
-1. `mc_create_project` / `mc_import_bbmodel` → 建模与贴图。
-2. 编写骨骼动画，使用预览工具检查动作。
-3. `mc_audit_model` → 修复目标引擎的兼容性问题。
-4. `mc_export_bbmodel` / `mc_export_engine_variants` → 导出。
+1. `mc_create_project` / `mc_import_bbmodel` → modelling and texturing.
+2. Author bone animation and check the motion with the preview tools.
+3. `mc_audit_model` → fix the compatibility problems for the target engine.
+4. `mc_export_bbmodel` / `mc_export_engine_variants` → export.
 
-`target: "both"` 使用保守的共同规则，不表示所有引擎特性都能互转。ModelEngine 的 `animation.override` 必须是布尔值；校验会报告错误，不会擅自补写。详见[兼容性说明](docs/COMPATIBILITY.md)与[工作流工具](docs/WORKFLOW-TOOLS.md)。
+`target: "both"` applies conservative shared rules; it does not mean every engine
+feature converts. ModelEngine's `animation.override` must be a boolean — validation
+reports an error instead of writing a value for you. See
+[compatibility](docs/COMPATIBILITY.md) and
+[workflow tools](docs/WORKFLOW-TOOLS.md).
 
-### CraftEngine 物品与家具
+### CraftEngine items and furniture
 
-调用 `mc_craftengine_profile` 查看范围，再用 `mc_craftengine_export` 生成 CE 内容包文件清单：
+Call `mc_craftengine_profile` to inspect the scope, then `mc_craftengine_export` to
+generate the file manifest of a CE content pack:
 
-- 静态模型使用 Java Block/Item 工程、逐面 UV 和内嵌 PNG，由 CE 蓝图功能生成资源包模型。
-- 动态家具引用已安装的 BetterModel / ModelEngine 模型，动画仍由对应引擎负责。
-- `mc_craftengine_pack_plan` 生成保留已有条目的合并方案，沿用 CE 的发包流程。
+- Static models use a Java Block/Item project, per-face UV and an embedded PNG, and
+  CE blueprints generate the resource-pack model.
+- Dynamic furniture references an installed BetterModel / ModelEngine model; the
+  corresponding engine still owns the animation.
+- `mc_craftengine_pack_plan` produces a merge plan that preserves existing entries
+  and follows CE's normal pack distribution.
 
-发布包附带内容包安装脚本，支持预检并拒绝覆盖已有目录。MCP 不会自动上传资源包或修改服务器凭据。完整参数、安装与重载方法见 [CraftEngine 使用说明](docs/CRAFTENGINE.md)。
+The release ships a content-pack installer that pre-checks and refuses to overwrite an
+existing directory. The MCP never uploads a resource pack or modifies server
+credentials. See [CraftEngine](docs/CRAFTENGINE.md) for full parameters, installation
+and reloading.
 
-### 已有模型导入
+### Importing existing models
 
-- `mc_import_bbmodel`：传入解析后的模型 JSON，通过原生 codec 新建工程，要求内嵌 PNG。[参数与限制](docs/JSON-IMPORT.md)
-- `mc_import_cem`：传入 JEM JSON，恢复原生几何与 UV，移除纹理路径并拒绝外部 JPM 引用；不转换 CEM 动画表达式。[参数与限制](docs/CEM-IMPORT.md)
+- `mc_import_bbmodel`: pass parsed model JSON and create a project through the native
+  codec; embedded PNGs are required. [Parameters and limits](docs/JSON-IMPORT.md)
+- `mc_import_cem`: pass JEM JSON to restore native geometry and UV, strip texture paths
+  and reject external JPM references; CEM animation expressions are not converted.
+  [Parameters and limits](docs/CEM-IMPORT.md)
 
-工具参数以 `tools/list` 返回的 schema 为准。编辑期间避免切换工程；长操作超时后应先检查编辑器状态再决定是否重试。
+Tool parameters are defined by the schemas returned from `tools/list`. Avoid switching
+projects while editing; after a long operation times out, inspect the editor state
+before deciding whether to retry.
 
-## 验证情况
+## Verification status
 
-Alpha 9 当时通过了 51 项整合测试、48 项 sosadly 翅膀/桥接测试及原有上游测试（51 为 Alpha 9 的历史数字）；当前 `Alpha` 分支的项目回归套件为 **85 项**。Web 连通和工具列表另行实测。以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
+Automated, reproducible today:
 
-| 范围 | 已完成的验证 |
+| Scope | What passes |
 | --- | --- |
-| Alpha 8 自动检查 | 类型检查、47 项整合/协议/回归测试、构建通过 |
-| Alpha 8 本地 Web | 真实 SDK 连接、211 个工具、CE 导出与合并方案调用，当前工程保持不变 |
-| CraftEngine 26.8.2 | 使用与 Beta 相同的 Paper 26.2-121 / CE 版本，在隔离环境完成内容加载、资源包生成、验证与压缩 |
-| 桌面 Blockbench 5.1.6 | 先前版本已通过真实连接与 44 次制作流程调用 |
-| BetterModel 3.4.1 / ModelEngine R4.1.1 | 先前隔离测试已通过模型导入、资源包生成与显示实体数据验证 |
+| Project regression | `npm run check` — type checking, build and 85 tests |
+| Upstream adaptation | `npm run test:upstream` — 117 tests (69 shared/host/startup plus 48 sosadly) |
+| Dependency audit | `npm audit --omit=dev --audit-level=moderate` — 0 advisories |
+| Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 155 staged files, licenses and checksums asserted |
+| Upstream pin | Every vendored file matches the pinned upstream commit (273 files) |
 
-这些记录不代表每个工具、每个模型或未来引擎版本均已验收。**图形 Minecraft 客户端效果、Alpha 8 的实际 Beta 上传，以及 CE 动态家具的外部引擎渲染尚未完成本次验收。** 详见[引擎运行记录](docs/RUNTIME-ACCEPTANCE.md)与[CE 验收范围](docs/CRAFTENGINE.md#acceptance-and-boundaries)。
+Historic acceptance records, listed for context:
 
-## 开发与工具来源
+| Scope | Completed verification |
+| --- | --- |
+| Alpha 8 local Web | Real SDK connection, 211 tools, CE export and merge-plan calls, active project unchanged |
+| CraftEngine 26.8.2 | Content loading, resource-pack generation, verification and compression in an isolated environment on Paper 26.2-121 |
+| Desktop Blockbench 5.1.6 | Real connection and 44 authoring-flow calls in an earlier version |
+| BetterModel 3.4.1 / ModelEngine R4.1.1 | Model import, resource-pack generation and display-entity data verification in earlier isolated tests |
+
+These records do not cover every tool, every model or future engine versions. **The
+graphical Minecraft client result, the actual Beta upload, and external-engine
+rendering of CE dynamic furniture have not been accepted in this round.** See
+[runtime acceptance](docs/RUNTIME-ACCEPTANCE.md) and
+[CE acceptance scope](docs/CRAFTENGINE.md#acceptance-and-boundaries).
+
+## Development and tool sources
 
 ```powershell
 npm.cmd run check
 npm.cmd run test:upstream
-# 以下操作会在专用测试编辑器中新建工程：
+# The following create a new project in a dedicated test editor:
 npm.cmd run test:live -- --confirm-disposable
 node scripts/live-workflow.mjs --confirm-disposable
 ```
 
-`BLOCKBENCH_BUILD_DIR` 与 `BLOCKBENCH_TEST_DIR` 可分别指定构建及测试产物目录。原始上游快照由 `upstream-lock.json` 锁定，适配代码位于 `src/` 和 `scripts/`。详见[架构说明](docs/ARCHITECTURE.md)。
+`BLOCKBENCH_BUILD_DIR` and `BLOCKBENCH_TEST_DIR` set the build and test output
+directories. Original upstream snapshots are pinned by `upstream-lock.json`; the
+adaptation code lives in `src/` and `scripts/`. See
+[architecture](docs/ARCHITECTURE.md).
 
-| 工具前缀 | 来源 |
+| Tool prefix | Source |
 | --- | --- |
 | `craft_*` | [SwagRee/BlockBenchMCP](https://github.com/SwagRee/BlockBenchMCP) |
 | `studio_*` | [jasonjgardner/blockbench-mcp-plugin](https://github.com/jasonjgardner/blockbench-mcp-plugin) |
 | `anim_*` | [sosadly/blockbench-mcp](https://github.com/sosadly/blockbench-mcp) |
-| `mc_*` | 本项目的 Minecraft 工作流、引擎适配、导入与导出工具 |
+| `mc_*` | This project's Minecraft workflows, engine adaptation, import and export tools |
 
-高级脚本执行、通用 UI 控制与插件管理默认关闭，需在本地编辑器设置中启用。启用后获得的是本机编辑器权限，不是受限沙箱。
+Advanced script execution, general UI control and plugin administration are off by
+default and must be enabled in the local editor settings. Enabling them grants local
+editor privileges, not a restricted sandbox.
 
-## 后续计划
+## Roadmap
 
-**YSM 离线恢复已在 Alpha 10 实现，时装工坊（AM/AW）仍未实现。** 后续完善 YSM 更多格式与样本覆盖、动画控制器和复杂材质映射。见 [YSM 范围](docs/YSM.md)与[开发路线](docs/ROADMAP.md)。
+Offline YSM recovery shipped in this line; **Armourer's Workshop (AM/AW) is still not
+implemented.** Next: broader YSM format and sample coverage, animation controllers and
+complex material mapping. See [YSM scope](docs/YSM.md) and
+[development roadmap](docs/ROADMAP.md).
 
-## 许可证
+## License
 
-**GPL-3.0-only**。保留四个上游的作者与许可信息，分发时请同时提供对应源码、许可证与[第三方通知](THIRD_PARTY_NOTICES.md)。详见 [LICENSE](LICENSE)。
+**GPL-3.0-only.** The four upstream projects' authors and licenses are preserved;
+when redistributing, also provide the corresponding source, the licenses and the
+[third-party notices](THIRD_PARTY_NOTICES.md). See [LICENSE](LICENSE).
 
-本项目并非 Blockbench、BetterModel、ModelEngine 或 CraftEngine 官方产品。
-
----
-
-**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. The `v0.1.0-alpha.10` release package has 235 default Web tools; the current `Alpha` branch carries unreleased upstream syncs (Jason v1.9.3) and the visual tools, with 254 default Web tools (261 with Advanced enabled), plus two relay-side offline YSM tools, so a default Web `tools/list` sees 256. Desktop has 267 (274 with Advanced). The current project regression suite is 85 tests; Alpha 8 historically had 211 verified default Web tools and 47 passing regression tests. The Alpha branch also adds six visual tools that are not in the Alpha 10 release package. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.
+This project is not an official Blockbench, BetterModel, ModelEngine or CraftEngine
+product.
