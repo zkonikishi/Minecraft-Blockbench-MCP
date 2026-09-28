@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ACTIVE_VIEW_ID } from "@/lib/constants";
 
 // ============================================================================
 // Vector Schemas
@@ -98,6 +99,23 @@ export const faceEnum = z.enum(["north", "south", "east", "west", "up", "down"])
 /** Camera projection types */
 export const projectionEnum = z.enum(["unset", "orthographic", "perspective"]);
 
+/** Reference to a render target accepted by view-aware camera tools. */
+export const viewRefSchema = z
+  .string()
+  .min(1)
+  .describe(
+    `View to target: "${ACTIVE_VIEW_ID}" for the viewport the user last interacted with, the ID of an offscreen view from create_offscreen_view, or a viewport ID from list_views.`
+  );
+
+/** Orthographic side views a camera can lock to. */
+export const lockedAngleEnum = z.enum(["top", "bottom", "north", "south", "east", "west"]);
+
+/** Agent-chosen identifier for a plugin-owned offscreen view. */
+export const offscreenViewIdSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{1,64}$/, "Use 1–64 letters, digits, underscores, or hyphens.")
+  .describe("Offscreen view ID.");
+
 /** Mesh selection modes */
 export const meshSelectionModeEnum = z.enum(["vertex", "edge", "face"]);
 
@@ -152,6 +170,39 @@ export const displaySlotEnum = z.enum([
 // ============================================================================
 // Color Schemas
 // ============================================================================
+
+/**
+ * Returns a *fresh* 8-bit color channel schema (inclusive 0-255) on every call.
+ * Fractional values are accepted to match existing tool contracts; chain
+ * `.int()` where the input format (such as Bedrock texture_set.json) requires
+ * whole numbers. A factory rather than a shared instance for the same reason as
+ * {@link vec3}: the MCP SDK emits repeated instances as bare `$ref`s (issue #44).
+ *
+ * @returns A new `z.number().min(0).max(255)` schema.
+ */
+export const colorByte = () => z.number().min(0).max(255);
+
+/**
+ * Returns a *fresh* RGB or MER triple of 8-bit channels, e.g.
+ * `[metalness, emissive, roughness]`, with independent channel instances.
+ *
+ * @returns A new 3-tuple schema of {@link colorByte} channels.
+ */
+export const rgbByteTuple = () => z.tuple([colorByte(), colorByte(), colorByte()]);
+
+/**
+ * Returns a *fresh* RGBA or MERS quadruple of 8-bit channels, e.g.
+ * `[r, g, b, a]`, with independent channel instances.
+ *
+ * @returns A new 4-tuple schema of {@link colorByte} channels.
+ */
+export const rgbaByteTuple = () => z.tuple([colorByte(), colorByte(), colorByte(), colorByte()]);
+
+/** Parsed `[r, g, b]` / `[metalness, emissive, roughness]` byte triple. */
+export type RgbByteTuple = z.infer<ReturnType<typeof rgbByteTuple>>;
+
+/** Parsed `[r, g, b, a]` byte quadruple. */
+export type RgbaByteTuple = z.infer<ReturnType<typeof rgbaByteTuple>>;
 
 /** Flexible color input: RGBA array, hex string, or named color */
 export const colorSchema = z.union([
@@ -253,13 +304,19 @@ export const faceKeysOptionalSchema = z
 // Common Parameter Schemas
 // ============================================================================
 
-/** Opacity value 0-255 */
+/**
+ * Brush/tool opacity, always on the 0-255 scale.
+ *
+ * Blockbench 5.2 added the `opacity_range` setting (`"255"` or `"100"`), which
+ * changes the scale of the brush opacity slider. The public MCP API stays 0-255
+ * regardless; paint tools convert to the active range before touching the slider.
+ */
 export const opacitySchema = z
   .number()
   .min(0)
   .max(255)
   .optional()
-  .describe("Opacity (0-255).");
+  .describe("Opacity (0-255), independent of Blockbench's opacity range setting.");
 
 /** Brush size 1-100 */
 export const brushSizeSchema = z
@@ -326,26 +383,38 @@ export const cubeSchema = z.object({
     .describe("Rotation of the cube."),
 });
 
-/** Mesh element schema */
+/**
+ * Mesh geometry in local coordinates. Faces reference zero-based vertex indices
+ * in perimeter order; omitting faces keeps the vertex-only creation workflow.
+ * Position becomes the pivot, rotation is in degrees, and scale is baked into
+ * the vertex coordinates because Blockbench meshes do not retain object scale.
+ */
 export const meshSchema = z.object({
   name: z.string(),
   position: vector3Schema
     .optional()
     .default([0, 0, 0])
-    .describe("Position of the mesh."),
+    .describe("Position of the mesh origin/pivot. Vertices are local to this point."),
   rotation: vector3Schema
     .optional()
     .default([0, 0, 0])
-    .describe("Rotation of the mesh."),
+    .describe("Rotation of the mesh in degrees around its origin."),
   scale: vector3Schema
     .optional()
     .default([1, 1, 1])
-    .describe("Scale of the mesh."),
+    .describe("Scale factors baked into local vertex coordinates before rotation."),
   vertices: z
     .array(vector3Schema.describe("Vertex coordinates in the mesh."))
     .optional()
     .default([])
     .describe("Vertices of the mesh."),
+  faces: z
+    .array(z.array(z.number().int().nonnegative()).min(3).max(4))
+    .optional()
+    .default([])
+    .describe(
+      "Triangle or quad faces as zero-based indices into vertices, in perimeter order. Counterclockwise winding faces outward. Omit for a vertex-only mesh."
+    ),
 });
 
 /** Keyframe data for animation tools */

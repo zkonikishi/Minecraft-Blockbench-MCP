@@ -11,7 +11,7 @@
 
 [下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 10 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.10) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
-一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。发布标签 `v0.1.0-alpha.10` 的发布包为 **235 个默认 Web 编辑器工具**；当前 `Alpha` 分支比该标签多 7 个提交，为 **243 个默认 Web 工具**（启用 Advanced 后 250 个），快速开始中的 `--branch Alpha` 克隆得到的是后者。relay 另提供 2 个离线 YSM 工具（`mc_ysm_inspect`、`mc_ysm_recover`），因此默认 Web 情况下客户端 `tools/list` 看到 **245 个**；桌面版默认 **256 个**，启用 Advanced 后 263 个。桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。发布标签 `v0.1.0-alpha.10` 的发布包为 **235 个默认 Web 编辑器工具**；当前 `Alpha` 分支已包含未发布的上游同步（Jason v1.9.3）与视觉工具，为 **254 个默认 Web 工具**（启用 Advanced 后 261 个），快速开始中的 `--branch Alpha` 克隆得到的是后者。relay 另提供 2 个离线 YSM 工具（`mc_ysm_inspect`、`mc_ysm_recover`），因此默认 Web 情况下客户端 `tools/list` 看到 **256 个**；桌面版默认 **267 个**，启用 Advanced 后 274 个。桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
 
 ## Alpha 10：YSM 离线恢复
 
@@ -20,6 +20,12 @@ Alpha 分支新增 [动画质量流程](docs/ANIMATION-QUALITY.md)：只读动�
 ### Alpha 开发分支：全局视觉工具
 
 新增 **6 个公共视觉工具**，覆盖多视角/线框、局部特写与骨骼叠加、贴图/UV、动画逐帧和前后对比，不限 YSM 或任何模型引擎。`scripts/review-model.mjs` 输出通用 HTML 图册；原 YSM 命令保留兼容。见 [视觉工作流](docs/VISUAL.md)。这些是 Alpha 分支更新，尚未包含在既有 Alpha 10 发布包中；编辑器实机验收另行记录，图片采集不代表视觉或游戏验收通过。
+
+### Alpha 开发分支：上游同步
+
+同步上游至当前版本：**Jason v1.9.3**（`6295e20a`，工具面增加 11 个，新增 headless server、粒子工具与 PBR 材质等上游能力，本集成只取其工具依赖闭包）、**sosadly** `028cdd76`（仅文档与 package.json）、**OpenYSM/YSMParser v0.3.6**（`86c48922`，修复 v3 解析器崩溃）；SwagRee 快照 `b99e581d` 未变。`vendor/` 与上游固定提交逐字节一致，校验见 `upstream-lock.json` 与 `vendor/ysmparser/provenance.json`。
+
+上游 1.9.3 使用了更多 Blockbench 原生 API（`Animator.getBoneAnimator`、`Keyframe.set`、`Animation.setLength`、`Undo.cancelEdit`），本仓库的测试 mock 已按真实 API 形状更新。**本次同步只扩展既有工具族，不注册上游新增的工具族**；插件 bundle 由约 1.40 MB 增至约 1.76 MB。尚未在真实编辑器与游戏客户端验收。
 
 新增 `mc_ysm_inspect` / `mc_ysm_recover` 和离线 CLI：从 `.ysm` 恢复 `.bbmodel`、贴图与骨骼动画，保留原始资源并输出差异报告。无需启动 Minecraft、YSM Mod 或编辑器。已验证 V1、V2、BOM V3 各一个样本；不承诺无损或全部版本覆盖。见 [YSM 使用说明](docs/YSM.md)。
 
@@ -207,4 +213,4 @@ node scripts/live-workflow.mjs --confirm-disposable
 
 ---
 
-**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. The `v0.1.0-alpha.10` release package has 235 default Web tools; the current `Alpha` branch has 243 default Web tools (250 with Advanced enabled), plus two relay-side offline YSM tools, so a default Web `tools/list` sees 245. Desktop has 256 (263 with Advanced). The current project regression suite is 85 tests; Alpha 8 historically had 211 verified default Web tools and 47 passing regression tests. The Alpha branch adds six visual tools not yet in the Alpha 10 release package. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.
+**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. The `v0.1.0-alpha.10` release package has 235 default Web tools; the current `Alpha` branch carries unreleased upstream syncs (Jason v1.9.3) and the visual tools, with 254 default Web tools (261 with Advanced enabled), plus two relay-side offline YSM tools, so a default Web `tools/list` sees 256. Desktop has 267 (274 with Advanced). The current project regression suite is 85 tests; Alpha 8 historically had 211 verified default Web tools and 47 passing regression tests. The Alpha branch also adds six visual tools that are not in the Alpha 10 release package. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.

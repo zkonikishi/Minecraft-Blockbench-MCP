@@ -1,13 +1,15 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
-import { createTool, type ToolSpec } from "@/lib/factories";
+import { createTool, type IToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
+import { runUndoableEdit } from "@/lib/undo";
 import {
   elementIdSchema,
   vector3Schema,
   meshIdOptionalSchema,
 } from "@/lib/zodObjects";
+import { applyIkController, setIkControllerParameters } from "@/server/tools/animation/rigging";
 
 // ============================================================================
 // Helper Functions
@@ -158,7 +160,7 @@ export const getArmatureBoneParameters = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe("Whether to include all vertex weights in response."),
+    .describe("Whether to include the bone's raw vertex_weights map in the response. Keys are `<first 6 chars of mesh UUID>:<vertex key>` (legacy projects may still hold bare `<vertex key>` entries until reweighted); use get_vertex_weights for per-mesh vertex-key maps."),
 });
 
 export const addArmatureBoneParameters = z.object({
@@ -272,9 +274,10 @@ export const clearVertexWeightsParameters = z.object({
 // Armature Tool Docs
 // ============================================================================
 
-export const armatureToolDocs: ToolSpec[] = [
+export const armatureToolDocs: IToolSpec[] = [
   {
     name: "list_armatures",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Lists all armatures in the current project with their basic info.",
     annotations: {
@@ -286,6 +289,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "get_armature",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Gets detailed information about a specific armature including its bones.",
     annotations: {
@@ -297,6 +301,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "add_armature",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Creates a new armature in the project. An armature is a skeletal rig used for mesh deformation.",
     annotations: {
@@ -308,6 +313,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "remove_armature",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Removes an armature and all its bones from the project.",
     annotations: {
       title: "Remove Armature",
@@ -318,6 +324,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "update_armature",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Updates properties of an existing armature.",
     annotations: {
       title: "Update Armature",
@@ -328,6 +335,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "list_armature_bones",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Lists all armature bones, optionally filtered by a specific armature.",
     annotations: {
@@ -339,6 +347,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "get_armature_bone",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Gets detailed information about a specific armature bone.",
     annotations: {
       title: "Get Armature Bone",
@@ -349,6 +358,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "add_armature_bone",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Creates a new bone and adds it to an armature or parent bone.",
     annotations: {
@@ -360,6 +370,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "remove_armature_bone",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Removes an armature bone from the project.",
     annotations: {
       title: "Remove Armature Bone",
@@ -370,6 +381,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "update_armature_bone",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Updates properties of an existing armature bone.",
     annotations: {
       title: "Update Armature Bone",
@@ -380,6 +392,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "update_armature_bones_batch",
+    condition: { project: true, features: ["armature_rig"] },
     description: "Updates multiple armature bones at once with the same properties.",
     annotations: {
       title: "Update Armature Bones (Batch)",
@@ -390,6 +403,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "select_armature_bones",
+    condition: { project: true, features: ["armature_rig"] },
     description:
       "Selects armature bones by ID. Can select single bone, multiple bones, or bone hierarchy.",
     annotations: {
@@ -401,6 +415,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "get_vertex_weights",
+    condition: { project: true, features: ["armature_rig", "meshes"] },
     description:
       "Gets vertex weights for a mesh from all bones affecting it.",
     annotations: {
@@ -412,6 +427,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "set_vertex_weight",
+    condition: { project: true, features: ["armature_rig", "meshes"] },
     description: "Sets the weight of a specific vertex on a bone.",
     annotations: {
       title: "Set Vertex Weight",
@@ -422,6 +438,7 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "set_vertex_weights_batch",
+    condition: { project: true, features: ["armature_rig", "meshes"] },
     description: "Sets multiple vertex weights at once on a bone.",
     annotations: {
       title: "Set Vertex Weights (Batch)",
@@ -432,12 +449,25 @@ export const armatureToolDocs: ToolSpec[] = [
   },
   {
     name: "clear_vertex_weights",
-    description: "Clears all vertex weights from a bone for a specific mesh.",
+    condition: { project: true, features: ["armature_rig", "meshes"] },
+    description: "Clears all vertex weights from a bone for a specific mesh, including legacy bare vertex-key entries that still apply to that mesh.",
     annotations: {
       title: "Clear Vertex Weights",
       destructiveHint: true,
     },
     parameters: clearVertexWeightsParameters,
+    status: STATUS_EXPERIMENTAL,
+  },
+  {
+    name: "set_ik_controller",
+    condition: { project: true, features: ["animation_mode"] },
+    description:
+      "Creates or updates an inverse-kinematics controller. Blockbench drives IK from a null object: ik_target is the end effector (group/bone, armature bone, or locator) that reaches for the null object, ik_source is the chain root (defaults to the null object's parent), ik_pole (Blockbench 5.2+) sets the bend direction, and lock_ik_target_rotation keeps the effector's rotation. Works with bone rigs and armatures (5.2 allows null objects under armatures and armature bones). Validates every reference and that the target lies below the chain root; returns the solved chain. Replaces the deprecated bone_rigging set_ik flags, which Blockbench never read.",
+    annotations: {
+      title: "Set IK Controller",
+      destructiveHint: true,
+    },
+    parameters: setIkControllerParameters,
     status: STATUS_EXPERIMENTAL,
   },
 ];
@@ -496,28 +526,26 @@ export function registerArmatureTools() {
         );
       }
 
-      Undo.initEdit({ outliner: true, elements: [] });
-
       const armature = new Armature({
         name,
         visibility,
         locked,
       });
-      armature.addTo(Outliner.root as any);
-      armature.isOpen = true;
-      armature.createUniqueName();
-      armature.init();
+      const bones = add_initial_bone ? [new ArmatureBone({ name: "bone" })] : [];
+      const elements: OutlinerElement[] = [armature, ...bones];
 
-      const elements: OutlinerElement[] = [armature];
-
-      if (add_initial_bone) {
-        const bone = new ArmatureBone({ name: "bone" });
-        bone.addTo(armature);
-        bone.init();
-        elements.push(bone);
-      }
-
-      Undo.finishEdit("Agent added armature", { outliner: true, elements });
+      runUndoableEdit({ outliner: true, elements: [] }, "Agent added armature", () => {
+        // addTo() resolves the project root from the "root" keyword; the
+        // Outliner.root array has no `children` or `parent` and makes it throw.
+        armature.addTo("root");
+        armature.isOpen = true;
+        armature.createUniqueName();
+        armature.init();
+        bones.forEach((bone) => {
+          bone.addTo(armature);
+          bone.init();
+        });
+      }, { outliner: true, elements });
       Canvas.updateAll();
 
       return JSON.stringify(
@@ -617,7 +645,11 @@ export function registerArmatureTools() {
 
       if (include_weights) {
         return JSON.stringify(
-          { ...result, vertex_weights: bone.vertex_weights },
+          {
+            ...result,
+            vertex_weights_key_format: "<mesh uuid first 6 chars>:<vertex key>; bare <vertex key> entries are legacy and apply to any mesh with that vertex",
+            vertex_weights: bone.vertex_weights,
+          },
           null,
           2
         );
@@ -961,13 +993,12 @@ export function registerArmatureTools() {
 
       Undo.initEdit({ elements: [bone] });
 
-      let count = 0;
-      for (const [vertex_key, weight] of Object.entries(weights)) {
-        if (vertex_key in mesh.vertices) {
-          bone.setVertexWeight(mesh, vertex_key, weight);
-          count++;
-        }
-      }
+      const target = mesh;
+      // Zod's record output is typed loosely; keep only numeric weights on existing vertices.
+      const applicable = Object.entries(weights as Record<string, unknown>)
+        .filter((entry): entry is [string, number] => typeof entry[1] === "number" && entry[0] in target.vertices);
+      applicable.forEach(([vertex_key, weight]) => bone.setVertexWeight(target, vertex_key, weight));
+      const count = applicable.length;
 
       Undo.finishEdit("Agent set vertex weights (batch)");
 
@@ -1007,19 +1038,15 @@ export function registerArmatureTools() {
         throw new Error("No mesh found. Provide mesh_id or select a mesh.");
       }
 
-      Undo.initEdit({ elements: [bone] });
-
-      let count = 0;
-      const meshPrefix = mesh.uuid.substring(0, 6) + ":";
-
-      for (const key in bone.vertex_weights) {
-        if (key.startsWith(meshPrefix)) {
-          delete bone.vertex_weights[key];
-          count++;
-        }
-      }
-
-      Undo.finishEdit("Agent cleared vertex weights");
+      // Iterate the mesh's vertices rather than the key prefix: getVertexWeight still
+      // falls back to legacy bare `vkey` entries, and setVertexWeight without a
+      // weight removes both the `uuid6:vkey` and the legacy form.
+      const target = mesh;
+      const count = runUndoableEdit({ elements: [bone] }, "Agent cleared vertex weights", () => {
+        const weighted = Object.keys(target.vertices).filter((vkey) => bone.getVertexWeight(target, vkey) > 0);
+        weighted.forEach((vkey) => bone.setVertexWeight(target, vkey));
+        return weighted.length;
+      });
 
       Canvas.updateView({
         elements: [mesh],
@@ -1038,4 +1065,15 @@ export function registerArmatureTools() {
       );
     },
   }, armatureToolDocs[15].status);
+
+  // ---------------------------------------------------------------------------
+  // Set IK Controller (NullObject)
+  // ---------------------------------------------------------------------------
+  createTool(armatureToolDocs[16].name, {
+    ...armatureToolDocs[16],
+    parameters: setIkControllerParameters,
+    async execute(input) {
+      return JSON.stringify(applyIkController(input), null, 2);
+    },
+  }, armatureToolDocs[16].status);
 }

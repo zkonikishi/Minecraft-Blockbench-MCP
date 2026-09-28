@@ -1,7 +1,7 @@
 {
   "name": "blockbench-mcp",
   "version": "0.3.1",
-  "description": "MCP server that lets an AI drive Blockbench: create models, textures, animations, take screenshots, install plugins and more.",
+  "description": "Blockbench MCP server: let AI (Claude, Cursor) create Minecraft models, textures, rigs and animations in Blockbench, take screenshots, install plugins and more.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -20,9 +20,15 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "mcp-server",
     "blockbench",
+    "blockbench-mcp",
+    "blockbench-plugin",
     "minecraft",
+    "minecraft-models",
     "geckolib",
+    "claude",
+    "cursor",
     "3d",
     "modeling",
     "ai"

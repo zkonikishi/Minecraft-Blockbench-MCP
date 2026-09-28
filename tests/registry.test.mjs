@@ -78,7 +78,10 @@ test('script guard uses local advanced setting and undefined results remain vali
 
 test('async export resolves codec content instead of serializing a Promise',async()=>{
  const saved={Project:globalThis.Project,Format:globalThis.Format,Codecs:globalThis.Codecs};
- try {globalThis.Project={};globalThis.Format={};globalThis.Codecs={gltf:{id:'gltf',compile:async()=>({asset:{version:'2.0'}})}};
+ // Upstream resolves the resource name from the project, so a project must carry a
+ // name or uuid (`vendor/jason/lib/projectResources.ts`); real projects always do.
+ try {globalThis.Project={name:'test_creature',uuid:'project-uuid'};globalThis.Format={id:'free',codec:{id:'gltf'}};
+ globalThis.Codecs={gltf:{id:'gltf',name:'glTF',extension:'gltf',compile:async()=>({asset:{version:'2.0'}})}};
  const r=createRuntime({desktop:true});const res=await r.call('studio_export_model',{codec_id:'gltf',max_content_length:10000});
  assert(!res.isError,JSON.stringify(res));assert.match(res.content[0].text,/2.0/);
  } finally {Object.assign(globalThis,saved);}
@@ -87,9 +90,16 @@ test('async export resolves codec content instead of serializing a Promise',asyn
 test('keyframe writes preserve independent scale axes and accept zero on edit',async()=>{
  const saved=Object.fromEntries(['Project','Group','Animation','Undo','Animator'].map(k=>[k,globalThis[k]]));
  try {
+ // Models Blockbench's real animator API, which upstream 1.9.3 uses: `addKeyframe`
+ // returns the new keyframe, `animation.getBoneAnimator()` resolves the animator,
+ // `setLength()`/`Undo.cancelEdit()` exist, and scale keyframes default to uniform.
  const frames=[];const bone={uuid:'body-id',name:'body'};
- const animator={scale:frames,createKeyframe(data){const frame={...data,uniform:true,axes:{},set(k,v){if(this.uniform)this.axes={x:v,y:v,z:v};else this.axes[k]=v;}};frames.push(frame);return frame;}};
- globalThis.Project={};globalThis.Group={all:[bone]};globalThis.Animation={selected:{animators:{'body-id':animator}}};globalThis.Undo={initEdit(){},finishEdit(){}};globalThis.Animator={preview(){}};
+ const animator={scale:frames,addKeyframe(data){const frame={time:data.time,channel:data.channel,uniform:true,axes:{},set(k,v){if(this.uniform)this.axes={x:v,y:v,z:v};else this.axes[k]=v;}};frames.push(frame);return frame;}};
+ const animation={uuid:'animation-id',name:'idle',animators:{'body-id':animator},
+  getBoneAnimator(node){return this.animators[node.uuid]??null;},setLength(){},select(){}};
+ globalThis.Project={name:'test_creature',uuid:'project-uuid'};globalThis.Group={all:[bone]};
+ globalThis.Animation={selected:animation,all:[animation]};
+ globalThis.Undo={initEdit(){},finishEdit(){},cancelEdit(){}};globalThis.Animator={preview(){}};
  const r=createRuntime();const args={bone_name:'body',channel:'scale',action:'create',keyframes:[{time:0,values:[1,2,3]}]};
  const result=await r.call('studio_manage_keyframes',args);assert(!result.isError,JSON.stringify(result));assert.deepEqual(frames[0].axes,{x:1,y:2,z:3});
  const edited=await r.call('studio_manage_keyframes',{...args,action:'edit',keyframes:[{time:0,values:0}]});assert(!edited.isError,JSON.stringify(edited));assert.deepEqual(frames[0].axes,{x:0,y:0,z:0});

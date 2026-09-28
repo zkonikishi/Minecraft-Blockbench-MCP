@@ -37,7 +37,7 @@ node scripts/convert-model.mjs "D:/models/example.ysm" "D:/models/recovered-alt"
 
 ## 范围与限制
 
-- 使用 MIT 许可 OpenYSM/YSMParser v0.3.5 的原始 Web WASM 发行文件；源码版本和文件 SHA-256 见 `vendor/ysmparser/provenance.json`。没有复制其他 AGPL 恢复器。
+- 使用 MIT 许可 OpenYSM/YSMParser v0.3.6 的原始 Web WASM 发行文件；发行包与各文件 SHA-256 见 `vendor/ysmparser/provenance.json`。没有复制其他 AGPL 恢复器。
 - WASM 在独立 worker 的内存文件系统解析；每次调用单独初始化，不加载模型中的脚本，也不通过模型路径读写主机文件。单文件输入最多 32 MiB，提取资源最多 128 MiB / 2048 项，解析最长 30 秒；relay 同时只接受一个恢复请求。这不是操作系统级沙箱。
 - 转换 Bedrock 1.12+ 立方体几何、层级、定位点、逐面/箱式 UV、内嵌 PNG，以及骨骼关键帧、pre/post、插值和非均匀缩放。源描述信息随工程保留。
 - 每个工程仍只选择一张贴图，优先使用支持的 spec-2 配置绑定，其他贴图保留为资源；复杂材质、网格、未支持的配置绑定、控制器及事件运行时行为不能保证等价重建。遗漏写入报告。Molang 保留表达式，不在离线阶段求值。

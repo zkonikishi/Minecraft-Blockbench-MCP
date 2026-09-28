@@ -27,13 +27,13 @@ Every tool file in `server/tools/` follows a two-part pattern:
 1. **Export parameter schemas and a `toolDocs` array** at module level (no Blockbench globals):
 ```ts
 import { z } from "zod";
-import { createTool, type ToolSpec } from "@/lib/factories";
+import { createTool, type IToolSpec } from "@/lib/factories";
 
 export const myToolParameters = z.object({
   name: z.string().describe("Name of the thing."),
 });
 
-export const myToolDocs: ToolSpec[] = [
+export const myToolDocs: IToolSpec[] = [
   {
     name: "my_tool",
     description: "Does something useful.",
@@ -75,7 +75,7 @@ Documentation is auto-generated from Zod schemas at build time:
 
 - **`build/docs-manifest.ts`**: Imports all `toolDocs` arrays from tool files plus inline prompt/resource specs. This is the single source of truth for what appears in the docs.
 - **`build/docs.ts`**: Reads the manifest, converts Zod schemas to JSON Schema via `zod-to-json-schema`, and outputs `docs/api.json` (machine-readable) and `docs/index.html` (Tailwind-styled page).
-- **`lib/factories.ts`**: Defines `ToolSpec`, `PromptSpec`, and `ResourceSpec` interfaces used by both tool files and the manifest.
+- **`lib/factories.ts`**: Defines `IToolSpec`, `IPromptSpec`, and `IResourceSpec` interfaces used by both tool files and the manifest.
 
 Prompt and resource specs are defined **inline in the manifest** (not imported from their source files) because `server/prompts.ts` uses Bun macros and `server/resources.ts` accesses Blockbench globals at module level.
 
@@ -100,3 +100,9 @@ Prompt and resource specs are defined **inline in the manifest** (not imported f
 - Server config lives in Blockbench Settings: MCP port and endpoint (defaults `:3000/bb-mcp`).
 - Do not commit secrets. Keep network calls behind tools; validate all inputs (use `zod`).
 - Keep bundle lean: add only necessary deps; prefer tree-shakeable utilities.
+
+## Benchmark results
+
+`benchmarks/results/` holds local, git-ignored benchmark evidence (large traces,
+`.bbmodel` snapshots and images). Do not search, read or summarize it unless the
+user points to a specific file there, and never stage, commit or force-add it.

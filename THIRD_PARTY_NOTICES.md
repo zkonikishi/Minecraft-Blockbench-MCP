@@ -7,7 +7,7 @@ an official Blockbench, BetterModel or ModelEngine project.
 ## Jason J. Gardner — blockbench-mcp-plugin
 
 - Source: https://github.com/jasonjgardner/blockbench-mcp-plugin
-- Commit: `b187b4b056f0efafcc573335400ecbb21ad26ecc`
+- Commit: `6295e20af26ec0f67bc81a5e95dac98db85a1801` (v1.9.3)
 - License: GPL-3.0-only. In this repository the original license is at
   `vendor/jason/LICENSE`, with the project's own copy at root `LICENSE`; the
   distributed package carries the GPL text as `LICENSE` (`dist/LICENSE` in a
@@ -58,7 +58,7 @@ an official Blockbench, BetterModel or ModelEngine project.
 ## sosadly — blockbench-mcp
 
 - Source: https://github.com/sosadly/blockbench-mcp
-- Commit: `09ea5c6e8ffed8c5cc1b68b72f86abfe300dd592`
+- Commit: `028cdd76589de2e2cea51bfd79495b50a3c7d1d2`
 - License: MIT, Copyright (c) 2026 sosadly. Full notice in this repository at
   `vendor/sosadly/LICENSE`; the distributed package carries it as
   `dist/licenses/sosadly-MIT.txt`.
@@ -68,8 +68,8 @@ an official Blockbench, BetterModel or ModelEngine project.
   time; replace HTTP forwarding with direct in-process calls. Do not start its
   original bridge or register its original plugin.
 
-`upstream-lock.json` records 225 selected upstream files and the pinned sources'
-own SHA-256 hashes across the three source trees above: jason 121, SwagRee 96 and
+`upstream-lock.json` records 273 selected upstream files and the pinned sources'
+own SHA-256 hashes across the three source trees above: jason 169, SwagRee 96 and
 sosadly 8. Vendored sources are stored with LF line endings and are byte-identical
 to those commits. The fourth source, OpenYSM/YSMParser, is pinned by
 `vendor/ysmparser/provenance.json` instead of the lock. Local integration changes
@@ -85,12 +85,12 @@ files and `package-lock.json` for the exact dependency graph.
 
 ## OpenYSM — YSMParser (optional offline recovery runtime)
 
-- Source: https://github.com/OpenYSM/YSMParser/tree/v0.3.5
-- Commit: `07f2372688e1f222bdce02a21913d43ca44689b0`.
+- Source: https://github.com/OpenYSM/YSMParser/tree/v0.3.6
+- Commit: `86c48922ecae79c4e9d16bffed1e8becbe849f98`.
 - License: MIT; preserved in `vendor/ysmparser/LICENSE.txt`.
-- The unmodified Web WASM release is pinned by SHA-256 in
-  `vendor/ysmparser/provenance.json`. It runs locally in a worker with a virtual
-  filesystem, without Minecraft, the Mod, or a browser/editor.
+- The unmodified Web WASM release is pinned in `vendor/ysmparser/provenance.json` by
+  the SHA-256 of the release archive and of each extracted file. It runs locally in a
+  worker with a virtual filesystem, without Minecraft, the Mod, or a browser/editor.
 - Recovery does not grant permission to redistribute third-party model assets.
 
 ## Modifications to vendored sources
@@ -120,7 +120,7 @@ The `vendor/jason` tree also carries 92 third-party agent skill files under
 loaded at build or run time, and they are redistributed verbatim as part of the
 pinned snapshot. The upstream repository publishes them under its own
 GPL-3.0-only `LICENSE` (`vendor/jason/LICENSE`, identical in text to the root
-`LICENSE`) at commit `b187b4b056f0efafcc573335400ecbb21ad26ecc`. Their individual
+`LICENSE`) at commit `6295e20af26ec0f67bc81a5e95dac98db85a1801`. Their individual
 licensors are:
 
 - `mcp-builder/` (10 files) and `skill-creator/` (7 files): Apache-2.0, each with its

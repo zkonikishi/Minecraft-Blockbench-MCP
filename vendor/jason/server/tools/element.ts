@@ -1,9 +1,12 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
-import { createTool, type ToolSpec } from "@/lib/factories";
+import { createTool, type IToolSpec } from "@/lib/factories";
 import { findElementOrThrow, findTextureOrThrow } from "@/lib/util";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
+import { createGroupWithUndo } from "@/lib/group-creation";
+import { runUndoableEdit } from "@/lib/undo";
+import { resetClipbenchDuplicateMap } from "@/lib/cube-knife";
 import {
   elementIdSchema,
   vector3Schema,
@@ -91,6 +94,14 @@ export const filterByMaterialParameters = z.object({
 
 export const getSelectionParameters = z.object({});
 
+/**
+ * Parameters for `add_group`, passed to `createGroupWithUndo` as one reversible edit.
+ * Expected shape: `name`; optional `origin` pivot and `rotation` (degrees) as
+ * `[x, y, z]` defaulting to zeros; `parent` as a group UUID or name, or
+ * `"root"` (default) for the project root; plus native group flags
+ * `visibility`, `autouv` (`"0"` | `"1"` | `"2"`), `selected`, and `shade`.
+ * Parent references are resolved at runtime, so the schema stays free of Blockbench globals.
+ */
 export const addGroupParameters = z.object({
   name: z.string(),
   origin: vec3("Pivot point of the group as [x, y, z].")
@@ -99,7 +110,7 @@ export const addGroupParameters = z.object({
   rotation: vec3("Rotation of the group in degrees as [x, y, z].")
     .optional()
     .default([0, 0, 0]),
-  parent: z.string().optional().default("root"),
+  parent: z.string().optional().default("root").describe("Parent group UUID or name, or root for the project root."),
   visibility: z.boolean().optional().default(true),
   autouv: autoUvEnum
     .optional()
@@ -108,7 +119,11 @@ export const addGroupParameters = z.object({
       "Auto UV setting. 0 = disabled, 1 = enabled, 2 = relative auto UV."
     ),
   selected: z.boolean().optional().default(false),
-  shade: z.boolean().optional().default(false),
+  shade: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe("Outliner shading toggle, matching Blockbench's default (true). Ignored by Java 26.3+ projects, which use per-cube shade_direction_override instead."),
 });
 
 export const listOutlineParameters = z.object({
@@ -134,8 +149,14 @@ export const listOutlineParameters = z.object({
 
 export const duplicateElementParameters = z.object({
   id: elementIdSchema.describe("ID or name of the element to duplicate."),
-  offset: vector3Schema.optional().default([0, 0, 0]),
-  newName: z.string().optional(),
+  offset: vector3Schema
+    .optional()
+    .default([0, 0, 0])
+    .describe("Model-space offset [x, y, z] applied to the copy and every descendant."),
+  newName: z
+    .string()
+    .optional()
+    .describe("Name for the top-level copy. Defaults to Blockbench's duplicate naming (trailing number incremented, unique where required)."),
 });
 
 export const renameElementParameters = z.object({
@@ -143,9 +164,10 @@ export const renameElementParameters = z.object({
   new_name: z.string().describe("New name to assign."),
 });
 
-export const elementToolDocs: ToolSpec[] = [
+export const elementToolDocs: IToolSpec[] = [
   {
     name: "remove_element",
+    condition: { project: true, features: ["edit_mode"] },
     description: "Removes the element with the given ID.",
     annotations: {
       title: "Remove Element",
@@ -156,6 +178,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "add_group",
+    condition: { project: true, features: ["edit_mode"] },
     description: "Adds a new group with the given name and options.",
     annotations: {
       title: "Add Group",
@@ -166,6 +189,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "list_outline",
+    condition: { project: true },
     description:
       "Returns the project outline as a hierarchical tree. Each node reports { name, uuid, type (cube|mesh|group), children? }. Groups contain child cubes, meshes, and sub-groups. Use `include_cubes=false` to get a group-only skeleton when you just need structure, or `max_depth` to bound very deep trees.",
     annotations: {
@@ -177,14 +201,16 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "duplicate_element",
+    condition: { project: true, features: ["edit_mode"] },
     description:
-      "Duplicates a cube, mesh or group by ID or name.  You may offset the duplicate or assign a new name.",
+      "Duplicates any outliner element or group (with its children) by ID or name using Blockbench's native duplicate, so every property, face UV, texture and mesh vertex key is preserved. Mesh copies inherit their armature bone vertex weights. Optionally offsets the copy and assigns a new name. Selection is left unchanged.",
     annotations: { title: "Duplicate Element", destructiveHint: true },
     parameters: duplicateElementParameters,
     status: STATUS_EXPERIMENTAL,
   },
   {
     name: "rename_element",
+    condition: { project: true, features: ["edit_mode"] },
     description: "Renames a cube, mesh or group by ID or name.",
     annotations: { title: "Rename Element", destructiveHint: true },
     parameters: renameElementParameters,
@@ -192,6 +218,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "find_elements_by_criteria",
+    condition: { project: true },
     description:
       "Searches the current project for elements matching the given criteria. Supports name pattern matching (regex or substring), type filtering, scoping to a parent group, cube size ranges, and selection scope. Returns element metadata, never modifies state.",
     annotations: {
@@ -203,6 +230,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "select_all_of_type",
+    condition: { project: true },
     description:
       "Selects all elements of the given type (cube, mesh, or group) in the current project. Optionally restrict to descendants of a parent group, or add to (rather than replace) the current selection.",
     annotations: {
@@ -214,6 +242,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "filter_by_material",
+    condition: { project: true },
     description:
       "Returns all elements that reference the given texture. For cubes, includes the list of face keys (e.g., 'north', 'up') that use the texture. For meshes, returns the mesh if any face uses the texture.",
     annotations: {
@@ -225,6 +254,7 @@ export const elementToolDocs: ToolSpec[] = [
   },
   {
     name: "get_selection",
+    condition: { project: true },
     description:
       "Returns the current selection state: selected cube/mesh/group UUIDs and names, plus the active texture. Use this to verify what `apply_texture` or a paint tool with `fill_mode=\"selected_elements\"` will target.",
     annotations: {
@@ -321,6 +351,130 @@ function safeCompileRegex(pattern: string | undefined): RegExp | null {
   }
 }
 
+/** Outliner node with the fields duplicate_element reads; Group is no longer an OutlinerElement in 5.2 types. */
+type DuplicableNode = OutlinerElement | Group;
+
+/** Structural view of positional arrays and children that most outliner node types expose. */
+interface IPositionedNode {
+  from?: unknown;
+  to?: unknown;
+  origin?: unknown;
+  position?: unknown;
+  children?: unknown;
+}
+
+/** Schema vectors are length-validated number arrays; Blockbench expects its tuple type. */
+function toVector3(vector: number[]): ArrayVector3 {
+  return [vector[0], vector[1], vector[2]];
+}
+
+function isVector3(value: unknown): value is ArrayVector3 {
+  return Array.isArray(value) && value.length === 3 && value.every((entry) => typeof entry === "number");
+}
+
+function childrenOf(node: unknown): OutlinerNode[] {
+  const children = (node as IPositionedNode).children;
+  return Array.isArray(children) ? (children as OutlinerNode[]) : [];
+}
+
+/**
+ * Original/copy pairs for a duplicated subtree. `duplicate()` appends each child
+ * copy in the original's child order, so the two trees can be walked in lockstep.
+ */
+function pairSubtrees(original: OutlinerNode, copy: OutlinerNode): [OutlinerNode, OutlinerNode][] {
+  const copyChildren = childrenOf(copy);
+  return [
+    [original, copy],
+    ...childrenOf(original).flatMap((child, index) => (copyChildren[index] ? pairSubtrees(child, copyChildren[index]) : [])),
+  ];
+}
+
+/**
+ * Moves one node by `offset`. Positional arrays are deduplicated by identity
+ * because NullObject/Locator/ArmatureBone expose `origin` and `position` as the same array.
+ */
+function shiftNode(node: OutlinerNode, offset: ArrayVector3): void {
+  const positioned = node as IPositionedNode;
+  const vectors = [...new Set([positioned.from, positioned.to, positioned.origin, positioned.position].filter(isVector3))];
+  vectors.forEach((vector) => {
+    vector[0] += offset[0];
+    vector[1] += offset[1];
+    vector[2] += offset[2];
+  });
+}
+
+/**
+ * Offsets a copied subtree in model space. Cubes, groups, meshes and markers
+ * under groups store absolute coordinates, but anything whose parent is an
+ * ArmatureBone is positioned relative to that bone and moves with it.
+ */
+function offsetSubtree(node: OutlinerNode, offset: ArrayVector3, parentIsBone = false): void {
+  if (!parentIsBone) shiftNode(node, offset);
+  const isBone = typeof ArmatureBone !== "undefined" && node instanceof ArmatureBone;
+  childrenOf(node).forEach((child) => offsetSubtree(child, offset, isBone));
+}
+
+/** ArmatureBone exists only on Blockbench 5.0+. */
+function allArmatureBones(): ArmatureBone[] {
+  return typeof ArmatureBone === "undefined" ? [] : ArmatureBone.all;
+}
+
+/** Bones that hold any weight for one of `meshes`; snapshotted before the edit so weight copies are undoable. */
+function bonesWeightingMeshes(meshes: Mesh[]): ArmatureBone[] {
+  return allArmatureBones().filter((bone) =>
+    meshes.some((mesh) => Object.keys(mesh.vertices).some((vkey) => bone.getVertexWeight(mesh, vkey) > 0)));
+}
+
+/**
+ * Copies vertex weights from each original mesh to its copy, as Blockbench 5.2's
+ * native Duplicate does. Weights land on the copied bone when the bone was
+ * duplicated alongside the mesh, otherwise on the original bone. Vertex keys are
+ * preserved by `Mesh.duplicate()`, so keys map one-to-one.
+ */
+function copyVertexWeights(pairs: [OutlinerNode, OutlinerNode][], bones: ArmatureBone[]): void {
+  const boneCopies = new Map(pairs.filter(([original]) => original instanceof ArmatureBone) as [ArmatureBone, ArmatureBone][]);
+  const meshPairs = pairs.filter(([original]) => original instanceof Mesh) as [Mesh, Mesh][];
+  meshPairs.forEach(([original, copy]) => bones.forEach((bone) => {
+    const target = boneCopies.get(bone) ?? bone;
+    Object.keys(original.vertices).forEach((vkey) => {
+      const weight = bone.getVertexWeight(original, vkey);
+      if (weight > 0) target.setVertexWeight(copy, vkey, weight);
+    });
+  }));
+}
+
+/**
+ * Duplicates `node` (and its subtree) with Blockbench's own `duplicate()` in one
+ * undoable edit, then offsets, renames, and carries mesh vertex weights over.
+ * The live selection is restored afterwards, and `Clipbench.duplicate_map` is
+ * reset because only the native Duplicate action clears it.
+ *
+ * @param node - Element or group to copy.
+ * @param offset - Model-space translation for the copy.
+ * @param name - Optional name for the top-level copy.
+ * @returns The top-level copy.
+ */
+function duplicateNode(node: DuplicableNode, offset: ArrayVector3, name: string | undefined): DuplicableNode {
+  const originals = [node, ...pairSubtrees(node, node).slice(1).map(([original]) => original)];
+  const bones = bonesWeightingMeshes(originals.filter((candidate): candidate is Mesh => candidate instanceof Mesh));
+  const elements: OutlinerElement[] = [...bones];
+  const selected = [...Outliner.selected];
+  try {
+    return runUndoableEdit({ elements, outliner: true }, "Agent duplicated element", () => {
+      const copy = (node as unknown as { duplicate(): DuplicableNode }).duplicate();
+      const pairs = pairSubtrees(node, copy);
+      elements.push(...pairs.map(([, created]) => created).filter((created): created is OutlinerElement => created instanceof OutlinerElement));
+      if (offset.some((value) => value !== 0)) offsetSubtree(copy, offset);
+      if (name !== undefined) copy.name = name;
+      copyVertexWeights(pairs, bones);
+      return copy;
+    });
+  } finally {
+    resetClipbenchDuplicateMap();
+    Outliner.selected.splice(0, Outliner.selected.length, ...selected);
+  }
+}
+
 export function registerElementTools() {
   createTool(elementToolDocs[0].name, {
     ...elementToolDocs[0],
@@ -354,13 +508,7 @@ export function registerElementTools() {
       selected,
       shade,
     }) {
-      Undo.initEdit({
-        elements: [],
-        outliner: true,
-        collections: [],
-      });
-
-      const group = new Group({
+      const group = createGroupWithUndo({
         name,
         origin,
         rotation,
@@ -368,16 +516,7 @@ export function registerElementTools() {
         visibility: Boolean(visibility),
         selected: Boolean(selected),
         shade: Boolean(shade),
-      }).init();
-
-      const parentGroup = parent === "root"
-        ? "root"
-        : // `@ts-expect-error` getAllGroups is a Blockbench global
-          getAllGroups().find((g: Group) => g.name === parent || g.uuid === parent);
-      group.addTo(parentGroup);
-
-      Undo.finishEdit("Agent added group");
-      Canvas.updateAll();
+      }, parent);
 
       return `Added group ${group.name} with ID ${group.uuid}`;
     },
@@ -451,82 +590,9 @@ export function registerElementTools() {
     ...elementToolDocs[3],
     async execute({ id, offset, newName }) {
       const element = findElementOrThrow(id);
-
-      // Helper functions for each type; match patterns used in existing tools:contentReference[oaicite:5]{index=5}.
-      function cloneCube(cube: Cube, parent: any) {
-        const dupe = new Cube({
-          name: newName || `${cube.name}_copy`,
-          from: cube.from.map((v, i) => v + offset[i]),
-          to: cube.to.map((v, i) => v + offset[i]),
-          origin: cube.origin.map((v, i) => v + offset[i]),
-          rotation: cube.rotation,
-          autouv: cube.autouv,
-          uv_offset: cube.uv_offset,
-          mirror_uv: cube.mirror_uv,
-          shade: cube.shade,
-          inflate: cube.inflate,
-          color: cube.color,
-          visibility: cube.visibility,
-        }).init();
-        dupe.addTo(parent);
-        return dupe;
-      }
-
-      function cloneGroup(group: Group, parent: any) {
-        const dupeGroup = new Group({
-          name: newName || `${group.name}_copy`,
-          origin: group.origin.map((v, i) => v + offset[i]),
-          rotation: group.rotation,
-          autouv: group.autouv,
-          selected: group.selected,
-          shade: group.shade,
-          visibility: group.visibility,
-        }).init();
-        dupeGroup.addTo(parent);
-        group.children.forEach((child: any) => cloneElement(child, dupeGroup));
-        return dupeGroup;
-      }
-
-      function cloneMesh(mesh: Mesh, parent: any) {
-        const dupe = new Mesh({
-          name: newName || `${mesh.name}_copy`,
-          vertices: {},
-          origin: mesh.origin.map((v, i) => v + offset[i]),
-          rotation: mesh.rotation,
-        }).init();
-        const map: Record<string, any> = {};
-        Object.entries(mesh.vertices).forEach(([key, coords]: [any, any]) => {
-          map[key] = dupe.addVertices([
-            coords[0] + offset[0],
-            coords[1] + offset[1],
-            coords[2] + offset[2],
-          ])[0];
-        });
-        mesh.faces.forEach((face: any) => {
-          dupe.addFaces(
-            new MeshFace(dupe, {
-              vertices: face.vertices.map((v: any) => map[v]),
-              uv: face.uv,
-            })
-          );
-        });
-        dupe.addTo(parent);
-        if ((mesh as any).material) dupe.applyTexture((mesh as any).material);
-        return dupe;
-      }
-
-      function cloneElement(el: any, parent: any) {
-        if (el instanceof Cube) return cloneCube(el, parent);
-        if (el instanceof Group) return cloneGroup(el, parent);
-        if (el instanceof Mesh) return cloneMesh(el, parent);
-        throw new Error("Unsupported element type.");
-      }
-
-      Undo.initEdit({ elements: [], outliner: true, collections: [] });
-      const dup = cloneElement(element, element.parent ?? Outliner);
-      Undo.finishEdit("Agent duplicated element");
+      const copy = duplicateNode(element, toVector3(offset), newName);
       Canvas.updateAll();
-      return `Duplicated "${element.name}" as "${dup.name}" (ID: ${dup.uuid}).`;
+      return `Duplicated "${element.name}" as "${copy.name}" (ID: ${copy.uuid}).`;
     },
   }, elementToolDocs[3].status);
 
@@ -538,9 +604,14 @@ export function registerElementTools() {
     ...elementToolDocs[4],
     async execute({ id, new_name }) {
       const element = findElementOrThrow(id);
-      Undo.initEdit({ elements: [element], outliner: true, collections: [] });
-      element.extend({ name: new_name });
-      Undo.finishEdit("Agent renamed element");
+      // 5.2 types split Group from OutlinerElement; groups are snapshotted through the groups aspect.
+      const aspects: UndoAspects = element instanceof Group
+        ? { groups: [element], outliner: true }
+        : { elements: [element], outliner: true, collections: [] };
+      runUndoableEdit(aspects, "Agent renamed element", () => {
+        // Both types implement extend(), which sanitizes the name; the published union does not guarantee it.
+        (element as unknown as { extend(data: { name: string }): unknown }).extend({ name: new_name });
+      });
       Canvas.updateAll();
       return `Renamed element "${id}" to "${new_name}".`;
     },
