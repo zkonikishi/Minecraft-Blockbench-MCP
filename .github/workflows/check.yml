@@ -5,9 +5,17 @@ permissions:
 jobs:
   check:
     strategy:
+      # A failure on one platform must not cancel the others; the whole point of the
+      # matrix is to see every platform's result.
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node: [22, 24]
+        include:
+          # Development machines run a newer line than either supported LTS; cover it
+          # once so the matrix reflects what is actually used day to day.
+          - os: ubuntu-latest
+            node: 26
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
