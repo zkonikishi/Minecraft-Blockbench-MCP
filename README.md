@@ -5,16 +5,18 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Current release: `1.0.0-rc.1` (release candidate).** Every automated gate passes:
-type checking, build, 85 project regression tests, 117 upstream tests, a clean
-production dependency audit, and staged-release verification. **Both editor paths and
-all three engine flows are accepted**: connection, automatic reconnect, visual capture,
-undo recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and the
-installed Blockbench 5.1.6 Desktop, and the exported models load and generate resource
-packs on Paper with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel
-3.5.0. **Graphical client rendering is still unverified** — see
-[release gates](docs/RELEASE-GATES.md). A final `1.0.0` is published only after those
-gates pass.
+**Current release: `1.0.0`.** Every automated gate passes on a 7-job matrix
+(ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26): type checking, build,
+85 project regression tests, 117 upstream tests, a clean production dependency audit and
+staged-release verification. **Editor, engine, upgrade-rollback and stability acceptance
+all pass**: connection, automatic reconnect, visual capture, undo recovery and the full
+authoring workflow against Blockbench 5.2.1 Web and the installed Blockbench 5.1.6
+Desktop; the exported models load and generate resource packs on Paper with ModelEngine
+R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0; upgrading from the released
+`v0.1.0-alpha.10` and rolling back both preserve the open project and the token; and a
+15-minute soak with 9 relay restarts showed no failures, no handle leak and no memory
+growth. **Graphical client rendering is not part of the 1.0.0 acceptance scope** and is
+listed as a known limitation — see [release gates](docs/RELEASE-GATES.md).
 
 Let AI author Minecraft models, textures and skeletal animation in **Blockbench
 Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
@@ -35,10 +37,13 @@ capabilities. Actual availability is whatever `tools/list` returns after connect
   verification gate fails if any of them is missing.
 - **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
   own SHA-256 over 273 files, so the snapshot can be re-checked against upstream.
-- **Editor and engine acceptance.** Connection, automatic reconnect, visual capture, undo
-  recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and the
-  installed Blockbench 5.1.6 Desktop; the exported models load and generate resource packs
-  on Paper with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0.
+- **Editor, engine, upgrade and stability acceptance.** Connection, automatic reconnect,
+  visual capture, undo recovery and the full authoring workflow pass against Blockbench
+  5.2.1 Web and the installed Blockbench 5.1.6 Desktop; the exported models load and
+  generate resource packs on Paper with ModelEngine R4.2.0, CraftEngine
+  26.9.2-SNAPSHOT and BetterModel 3.5.0; upgrading from the released `v0.1.0-alpha.10`
+  and rolling back both preserve the open project and the token; and a 15-minute soak
+  with 9 relay restarts showed no failures, no handle leak and no memory growth.
 - **Single-sourced version.** The plugin, the relay and `mc_status` all derive their
   version from `package.json`.
 - **Offline YSM recovery.** `mc_ysm_inspect` / `mc_ysm_recover` and a CLI recover
@@ -230,6 +235,9 @@ Automated, reproducible today:
 | Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 254 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
 | Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 269 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
 | Engine acceptance | Isolated Paper 26.3 build 49 with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0: ModelEngine imported the exported blueprint, BetterModel packed 13 bone models into `build.zip`, and CraftEngine generated a resource pack containing `assets/mcp_ce/*` |
+| CI matrix | 7 jobs green: ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26 |
+| Upgrade and rollback | From the released `v0.1.0-alpha.10` to `1.0.0` and back: the open project and the token survived both, the model shape stayed identical, and import returns `previousProject` instead of overwriting |
+| Stability soak | 15 minutes: 284 calls plus 224 concurrent calls with **0 failures**, 9 relay restarts all recovered by the plugin, handles 13 → 13 and no memory growth |
 
 Historic acceptance records, listed for context:
 

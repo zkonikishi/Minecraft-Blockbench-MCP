@@ -5,13 +5,16 @@
 
 [English](README.md) | **简体中文**
 
-**当前发布：`1.0.0-rc.1`（候选版）。** 所有自动化门槛均已通过：类型检查、构建、
-85 项项目回归测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
-**两条编辑器路径与三个引擎流程均已实机验收通过**：连接、自动重连、视觉截图、撤销恢复与
-完整编辑流程，在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；
-导出的模型在 Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0
-上成功加载并生成资源包。**图形客户端观感尚未验收**，见[发布门槛](docs/RELEASE-GATES.md)。
-只有这些门槛通过之后才会发布 `1.0.0` 正式版。
+**当前发布：`1.0.0`。** 所有自动化门槛均已通过，CI 为 **7 个任务的矩阵**（ubuntu /
+windows / macos × Node 22、24，外加 ubuntu × Node 26）：类型检查、构建、85 项项目回归
+测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
+**编辑器、引擎、升级回滚与稳定运行均已验收**：连接、自动重连、视觉截图、撤销恢复与完整
+编辑流程，在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的
+模型在 Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0 上
+成功加载并生成资源包；从已发布的 `v0.1.0-alpha.10` 升级与回滚都保留了打开的工程与 token；
+15 分钟浸泡 + 9 次 relay 重启无失败、无句柄泄漏、无内存增长。
+**图形客户端观感不在 `1.0.0` 的验收范围内**，作为已知限制列出，见
+[发布门槛](docs/RELEASE-GATES.md)。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
 并对接 **BetterModel、ModelEngine、CraftEngine**。
@@ -203,6 +206,9 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，254 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
 | Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：269 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
 | 引擎实机 | 隔离 Paper 26.3 build 49 + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0：ModelEngine 导入导出的 blueprint、BetterModel 把 13 个骨骼模型打进 `build.zip`、CraftEngine 生成的资源包含 `assets/mcp_ce/*` |
+| CI 多平台矩阵 | 7 个任务全绿：ubuntu / windows / macos × Node 22、24，外加 ubuntu × Node 26 |
+| 升级与回滚 | 从线上 `v0.1.0-alpha.10` 升级到 `1.0.0` 再回滚：打开的工程与 token 始终保留，模型形状完全一致，导入时返回 `previousProject` 不覆写 |
+| 稳定运行 | 15 分钟浸泡：284 次调用 + 224 次并发调用 **0 失败**，9 次 relay 重启全部自愈，句柄 13→13、内存无增长 |
 
 以下为历史验收记录，列出供参考：
 

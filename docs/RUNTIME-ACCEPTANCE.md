@@ -1,5 +1,8 @@
 # Runtime acceptance — 2026-09-08
 
+> 下列 `1.0.0-rc.1` 验收记录是 `1.0.0` 的验收依据：`1.0.0` 与该构建仅差版本常量，
+> 把版本串还原后两者逐字节相同。
+
 ## 1.0.0-rc.1 Web acceptance — 2026-09-28
 
 The Web gate that was previously recorded as blocked — connection, reconnect, visual
@@ -80,6 +83,49 @@ Reproduction notes:
   so Paper does not re-download them; do not copy the world.
 
 In-game rendering with a graphical client remains unverified and is not claimed here.
+
+## 1.0.0 upgrade and rollback acceptance — 2026-09-28
+
+Old = the published `v0.1.0-alpha.10` release assets; new = the staged `1.0.0` package. A
+real Blockbench Web editor stayed open across the swap, so the open project could be
+checked before and after.
+
+| Phase | Version | Tools | Open project | Model shape |
+| --- | --- | --- | --- | --- |
+| Baseline (old, project already built) | `0.1.0-alpha.10` | 235 (237 via `tools/list`) | `41ebf0f4…` | 10 elements / 12 groups / 6 animations / 1 texture |
+| **After upgrade (new relay + new plugin)** | `1.0.0-rc.1` | 254 (256) | **the same project** | **identical** |
+| Old export → new import | `1.0.0-rc.1` | 254 | new project, returns `previousProject` preserving the old one | identical |
+| **After rollback (old relay + old plugin)** | `0.1.0-alpha.10` | 235 (237) | project intact | identical |
+
+- One token stayed valid across both the upgrade and the rollback; nothing had to be
+  reconfigured.
+- The new version returns `previousProject` on import, so it does not overwrite the
+  project that is open.
+- A mixed pairing (new relay with the old plugin) does not fail, but `mc_status` reports
+  the **plugin's** version and tool set, which is why the documentation says not to claim
+  new features in that combination.
+- The old dependency tree carried **3 advisories (1 moderate, 2 high)**; the new one has
+  **0**, so the upgrade is itself a security fix.
+- The old plugin predates settings-change auto-reconnect (fixed in `f020f56`), so the
+  Connect action has to be triggered once by hand; the upgraded plugin reconnects on its
+  own.
+
+## 1.0.0 stability soak — 2026-09-28
+
+15 minutes with a real editor attached, opening and closing an MCP client for every call
+so connect/disconnect churn is part of the test:
+
+| Metric | Result |
+| --- | --- |
+| Duration and load | **284** `mc_status` calls in 902 s, plus 28 bursts of 8 concurrent calls exercising the shared queue |
+| Failures | **0** |
+| Relay restarts | **9 restarts, all recovered by the plugin alone, 0 failures** (~2 s each) |
+| Memory | RSS 123.8 MB → 129.8 MB, oscillating in a 124–135 MB band, no monotonic growth |
+| Active handles | 13 → 13 (**+0**, no handle leak) |
+| End state | editor still connected |
+
+A 15-minute soak is a smoke test, not proof of hour- or day-scale stability; that remains
+unverified.
 
 ## Alpha 5 follow-up
 
