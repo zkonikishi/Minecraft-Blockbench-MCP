@@ -53,6 +53,34 @@ node scripts/desktop-acceptance.mjs --confirm-isolated-desktop
 This ran against a headless-driven desktop window. It does not claim graphical fidelity
 of the viewport or any game-side engine execution.
 
+## 1.0.0-rc.1 engine acceptance — 2026-09-28
+
+The three engine flows were accepted against an **isolated Paper server** assembled from
+copies of the production artefacts. The live server, its plugins and the editor profiles
+were never modified.
+
+| Item | Evidence |
+| --- | --- |
+| Server | **Paper 26.3 build 49**, JDK 25.0.4.1, a fresh flat world, loopback-only RCON for control |
+| Engines | **ModelEngine R4.2.0**, **CraftEngine 26.9.2-SNAPSHOT**, **BetterModel 3.5.0** (official paper build; the downloaded jar's SHA-256 matches the digest GitHub publishes) |
+| Exported by | The MCP, against a real connected Blockbench Web editor: `mc_export_engine_variants` produced the BetterModel and ModelEngine `.bbmodel` files (16 elements, 17 groups, 6 animations, embedded PNG); `mc_craftengine_export` produced the CraftEngine pack manifest |
+| ModelEngine | `[ModelEngine] [A] Importing mcp_acceptance.bbmodel.` → `Resource pack zipped.` → `Generator Profiled:` |
+| BetterModel | `plugins/BetterModel/build.zip` (2,157,380 bytes, 5,912 entries) contains **13** `assets/bettermodel/items/c/mcp_acceptance_<bone>.json` entries covering body, head, jaw, both wings and all four legs |
+| CraftEngine | Startup logged `已加载的包：blockbench_mcp。默认命名空间：mcp_ce`; `ce reload all` completed **generate → validate → zip → upload**; the resulting `generated/resource_pack.zip` (2,572,112 bytes, 6,591 entries) contains `assets/mcp_ce/items/acceptance_cube.json`, `assets/mcp_ce/models/item/acceptance_cube.json` and `assets/mcp_ce/textures/item/acceptance_cube.png` |
+| Errors | none during engine loading or resource-pack generation |
+
+Reproduction notes:
+
+- `ce reload all` **does** work from the console; only the bare `/ce` command opens a GUI
+  and therefore requires a player sender.
+- Launching Java from PowerShell fails while `http_proxy`/`https_proxy`/`no_proxy` exist
+  alongside their uppercase forms: the child environment block cannot be built. Remove the
+  duplicates first.
+- Reuse the production `libraries`, `versions` and `cache` directories in the isolated copy
+  so Paper does not re-download them; do not copy the world.
+
+In-game rendering with a graphical client remains unverified and is not claimed here.
+
 ## Alpha 5 follow-up
 
 ### Accepted Beta server baseline

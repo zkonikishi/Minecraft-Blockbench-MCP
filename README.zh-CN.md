@@ -7,9 +7,10 @@
 
 **当前发布：`1.0.0-rc.1`（候选版）。** 所有自动化门槛均已通过：类型检查、构建、
 85 项项目回归测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
-**两条编辑器路径均已实机验收通过**：连接、自动重连、视觉截图、撤销恢复与完整编辑流程，
-在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过。
-**三个引擎的实机验收尚未完成**，见[发布门槛](docs/RELEASE-GATES.md)。
+**两条编辑器路径与三个引擎流程均已实机验收通过**：连接、自动重连、视觉截图、撤销恢复与
+完整编辑流程，在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；
+导出的模型在 Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0
+上成功加载并生成资源包。**图形客户端观感尚未验收**，见[发布门槛](docs/RELEASE-GATES.md)。
 只有这些门槛通过之后才会发布 `1.0.0` 正式版。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
@@ -30,8 +31,10 @@
   第三方通知；缺失任何一项，校验门禁都会失败。
 - **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 273 个
   文件，快照可随时与上游重新比对。
-- **两条编辑器路径均已验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
-  Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过。
+- **编辑器与引擎均已验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
+  Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的模型在
+  Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0 上成功
+  加载并生成资源包。
 - **版本单一来源。** 插件、relay 与 `mc_status` 的版本号全部来自 `package.json`。
 - **YSM 离线恢复。** `mc_ysm_inspect` / `mc_ysm_recover` 与离线 CLI 可从 `.ysm` 容器
   恢复 `.bbmodel`、贴图与骨骼动画，无需启动 Minecraft、YSM Mod 或编辑器。
@@ -199,6 +202,7 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | 上游锁定 | 每个 vendored 文件都与固定的上游提交一致（273 个文件） |
 | Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，254 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
 | Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：269 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
+| 引擎实机 | 隔离 Paper 26.3 build 49 + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0：ModelEngine 导入导出的 blueprint、BetterModel 把 13 个骨骼模型打进 `build.zip`、CraftEngine 生成的资源包含 `assets/mcp_ce/*` |
 
 以下为历史验收记录，列出供参考：
 
@@ -209,8 +213,9 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | 桌面 Blockbench 5.1.6 | 先前版本已通过真实连接与 44 次制作流程调用 |
 | BetterModel 3.4.1 / ModelEngine R4.1.1 | 先前隔离测试已通过模型导入、资源包生成与显示实体数据验证 |
 
-这些记录不代表每个工具、每个模型或未来引擎版本均已验收。**图形 Minecraft 客户端
-效果、实际 Beta 上传，以及 CE 动态家具的外部引擎渲染尚未完成本轮验收。** 详见
+这些记录不代表每个工具、每个模型或未来引擎版本均已验收。上表中的引擎流程是**服务端**验收
+——在隔离 Paper 服务器上完成模型导入与资源包生成，并非在运行中的客户端里目视确认。
+**图形 Minecraft 客户端效果与实际 Beta 上传尚未验收。** 详见
 [引擎运行记录](docs/RUNTIME-ACCEPTANCE.md)与
 [CE 验收范围](docs/CRAFTENGINE.md#acceptance-and-boundaries)。
 

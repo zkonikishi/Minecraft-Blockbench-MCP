@@ -40,6 +40,7 @@ node scripts/verify-release.mjs D:/releases/new-stage
 | 上游锁定一致性（273 个文件逐个比对） | 与固定上游提交逐字节一致 |
 | **Web 编辑器连接、重连、视觉及完整编辑流程** | **已实机通过**，证据见下表 |
 | **Desktop 同等流程及撤销恢复** | **已实机通过**，证据见下表 |
+| **BetterModel / ModelEngine / CraftEngine 引擎流程** | **已实机通过**，证据见下表 |
 
 Web 实机验收记录：
 
@@ -75,17 +76,27 @@ Remove-Item Env:\ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 & 'C:\Path\To\Blockbench.exe' --userData D:\temp\bb-profile --remote-debugging-port=39803
 ```
 
+三个引擎实机验收记录（隔离 Paper 服务器，未触碰生产服务与真实编辑器数据）：
+
+| 项目 | 实测证据 |
+|---|---|
+| 服务端环境 | **Paper 26.3 build 49** + **ModelEngine R4.2.0** + **CraftEngine 26.9.2-SNAPSHOT** + **BetterModel 3.5.0**（官方 paper 构建，下载后 sha256 与 GitHub 公布值一致），JDK 25.0.4.1 |
+| 导出物来源 | 通过 MCP 在**真实连接的 Blockbench Web 编辑器**上生成：`mc_export_engine_variants` 产出 BetterModel / ModelEngine 两个 `.bbmodel`（16 元素、17 骨骼、6 个动画、内嵌 PNG）；`mc_craftengine_export` 产出 CraftEngine 内容包清单 |
+| ModelEngine | 日志 `[ModelEngine] [A] Importing mcp_acceptance.bbmodel.` → `Resource pack zipped.` → `Generator Profiled:` —— blueprint 被导入并打包 |
+| BetterModel | `plugins/BetterModel/build.zip`（2,157,380 字节 / 5,912 条目）中含 **13 个** `assets/bettermodel/items/c/mcp_acceptance_<骨骼>.json`（body / head / jaw / 双翼 / 四足全部展开） |
+| CraftEngine | 启动日志 `已加载的包：blockbench_mcp。默认命名空间：mcp_ce`；执行 `ce reload all` 后完成 **生成 → 验证 → 压缩 → 上传** 四个阶段；`generated/resource_pack.zip`（2,572,112 字节 / 6,591 条目）内含 `assets/mcp_ce/{items/acceptance_cube.json, models/item/acceptance_cube.json, textures/item/acceptance_cube.png}` |
+| 错误 | 三引擎加载与资源包生成过程**零错误、零异常** |
+
 **发布 `1.0.0` 正式版之前仍需完成：**
 
 | 门槛 | 当前状态 |
 |---|---|
-| BetterModel / ModelEngine / CraftEngine 引擎流程 | 待对应版本实机验收 |
-| 图形 Minecraft 客户端效果与资源包上传 | 未验收 |
-| 升级回滚、稳定运行与 CI 多平台矩阵 | 待本轮证据收齐 |
+| 图形 Minecraft 客户端效果与资源包上传 | 未验收（需要图形客户端实际观感确认） |
+| 升级回滚、稳定运行与 CI 多平台矩阵 | 待本轮证据收齐（CI 多平台部分已在 4 个矩阵任务上通过） |
 
 `1.0.0-rc.1` 同步了上游 Jason v1.9.3 与 YSMParser v0.3.6，此前这批改动从未在真实编辑器中
-运行过。**Web 与 Desktop 两项实机验收都在同步后的构建上完成**：连接、重连、撤销恢复、
-完整编辑流程与截图全部通过。三个引擎侧仍未验收。
+运行过。**Web、Desktop 与三个引擎的实机验收都在同步后的构建上完成**：连接、重连、撤销恢复、
+完整编辑流程、截图、引擎模型导入与资源包生成全部通过。图形客户端观感仍未验收。
 
 实验性 YSM 恢复、链式动画和视觉诊断与稳定编辑功能分开描述。完成代码不等于渲染或游戏验收。
 

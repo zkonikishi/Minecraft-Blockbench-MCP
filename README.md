@@ -7,10 +7,12 @@
 
 **Current release: `1.0.0-rc.1` (release candidate).** Every automated gate passes:
 type checking, build, 85 project regression tests, 117 upstream tests, a clean
-production dependency audit, and staged-release verification. **Both editor paths are
-accepted end to end**: connection, automatic reconnect, visual capture, undo recovery
-and the full authoring workflow pass against Blockbench 5.2.1 Web and against the
-installed Blockbench 5.1.6 Desktop. **Engine acceptance is still outstanding** — see
+production dependency audit, and staged-release verification. **Both editor paths and
+all three engine flows are accepted**: connection, automatic reconnect, visual capture,
+undo recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and the
+installed Blockbench 5.1.6 Desktop, and the exported models load and generate resource
+packs on Paper with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel
+3.5.0. **Graphical client rendering is still unverified** — see
 [release gates](docs/RELEASE-GATES.md). A final `1.0.0` is published only after those
 gates pass.
 
@@ -33,9 +35,10 @@ capabilities. Actual availability is whatever `tools/list` returns after connect
   verification gate fails if any of them is missing.
 - **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
   own SHA-256 over 273 files, so the snapshot can be re-checked against upstream.
-- **Both editor paths accepted.** Connection, automatic reconnect, visual capture, undo
-  recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and against
-  the installed Blockbench 5.1.6 Desktop.
+- **Editor and engine acceptance.** Connection, automatic reconnect, visual capture, undo
+  recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and the
+  installed Blockbench 5.1.6 Desktop; the exported models load and generate resource packs
+  on Paper with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0.
 - **Single-sourced version.** The plugin, the relay and `mc_status` all derive their
   version from `package.json`.
 - **Offline YSM recovery.** `mc_ysm_inspect` / `mc_ysm_recover` and a CLI recover
@@ -226,6 +229,7 @@ Automated, reproducible today:
 | Upstream pin | Every vendored file matches the pinned upstream commit (273 files) |
 | Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 254 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
 | Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 269 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
+| Engine acceptance | Isolated Paper 26.3 build 49 with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0: ModelEngine imported the exported blueprint, BetterModel packed 13 bone models into `build.zip`, and CraftEngine generated a resource pack containing `assets/mcp_ce/*` |
 
 Historic acceptance records, listed for context:
 
@@ -236,9 +240,10 @@ Historic acceptance records, listed for context:
 | Desktop Blockbench 5.1.6 | Real connection and 44 authoring-flow calls in an earlier version |
 | BetterModel 3.4.1 / ModelEngine R4.1.1 | Model import, resource-pack generation and display-entity data verification in earlier isolated tests |
 
-These records do not cover every tool, every model or future engine versions. **The
-graphical Minecraft client result, the actual Beta upload, and external-engine
-rendering of CE dynamic furniture have not been accepted in this round.** See
+These records do not cover every tool, every model or future engine versions. The engine
+flows above were verified **server-side** — model import and resource-pack generation on
+an isolated Paper server — and not by eye in a running client. **The graphical Minecraft
+client result and the actual Beta upload have not been accepted.** See
 [runtime acceptance](docs/RUNTIME-ACCEPTANCE.md) and
 [CE acceptance scope](docs/CRAFTENGINE.md#acceptance-and-boundaries).
 
