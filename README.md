@@ -7,11 +7,12 @@
 
 **Current release: `1.0.0-rc.1` (release candidate).** Every automated gate passes:
 type checking, build, 85 project regression tests, 117 upstream tests, a clean
-production dependency audit, and staged-release verification. The **Web editor path is
-accepted end to end** — connection, automatic reconnect, visual capture and the full
-authoring workflow all pass against Blockbench 5.2.1 Web. **Desktop and engine
-acceptance is still outstanding** — see [release gates](docs/RELEASE-GATES.md). A final
-`1.0.0` is published only after those gates pass.
+production dependency audit, and staged-release verification. **Both editor paths are
+accepted end to end**: connection, automatic reconnect, visual capture, undo recovery
+and the full authoring workflow pass against Blockbench 5.2.1 Web and against the
+installed Blockbench 5.1.6 Desktop. **Engine acceptance is still outstanding** — see
+[release gates](docs/RELEASE-GATES.md). A final `1.0.0` is published only after those
+gates pass.
 
 Let AI author Minecraft models, textures and skeletal animation in **Blockbench
 Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
@@ -32,6 +33,9 @@ capabilities. Actual availability is whatever `tools/list` returns after connect
   verification gate fails if any of them is missing.
 - **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
   own SHA-256 over 273 files, so the snapshot can be re-checked against upstream.
+- **Both editor paths accepted.** Connection, automatic reconnect, visual capture, undo
+  recovery and the full authoring workflow pass against Blockbench 5.2.1 Web and against
+  the installed Blockbench 5.1.6 Desktop.
 - **Single-sourced version.** The plugin, the relay and `mc_status` all derive their
   version from `package.json`.
 - **Offline YSM recovery.** `mc_ysm_inspect` / `mc_ysm_recover` and a CLI recover
@@ -221,6 +225,7 @@ Automated, reproducible today:
 | Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 156 staged files, licenses and checksums asserted |
 | Upstream pin | Every vendored file matches the pinned upstream commit (273 files) |
 | Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 254 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
+| Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 269 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
 
 Historic acceptance records, listed for context:
 

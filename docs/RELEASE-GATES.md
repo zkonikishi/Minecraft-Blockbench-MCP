@@ -39,6 +39,7 @@ node scripts/verify-release.mjs D:/releases/new-stage
 | 暂存包校验（156 个文件、许可证与校验和） | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` |
 | 上游锁定一致性（273 个文件逐个比对） | 与固定上游提交逐字节一致 |
 | **Web 编辑器连接、重连、视觉及完整编辑流程** | **已实机通过**，证据见下表 |
+| **Desktop 同等流程及撤销恢复** | **已实机通过**，证据见下表 |
 
 Web 实机验收记录：
 
@@ -54,18 +55,37 @@ Web 实机验收记录：
 复现方式：`MINECRAFT_BLOCKBENCH_TOKEN=<token> node scripts/web-acceptance.mjs`（需要
 `npm i playwright-core` 与一个 Chromium 系浏览器；见[本地 Web 生命周期](LOCAL-WEB-LIFECYCLE.md)）。
 
+Desktop 实机验收记录（隔离 `--userData` 配置，未触碰真实编辑器数据）：
+
+| 项目 | 实测证据 |
+|---|---|
+| 应用 | 已安装的 **Blockbench 5.1.6 Desktop**（Electron 40.10.6 / Node 24.15.0），CDP 上报 `isApp: true` |
+| 桥接 Origin | WebSocket 握手 `Origin: file://` —— 与 Alpha 4 的验收项一致，安装版会发本地文件来源 |
+| 连接 | 编辑器弹出 “Minecraft Blockbench MCP connected”；`mc_status` → 桌面模式、**269** 个工具（桌面默认 267 + 2 个 YSM） |
+| 撤销恢复 | `live-workflow.mjs` 内的 `studio_undo` / `studio_redo` 断言全部通过（重父级后世界变换不变、脚本关键帧与集合的回滚/重做） |
+| 完整编辑流程 | 同一次运行 **44 次调用全部通过，退出码 0** |
+| 运行时异常 | **0** 个未捕获异常（4 条控制台日志为 Electron/Three.js/Blockbench 版本与更新提示） |
+
+复现方式：`BLOCKBENCH_TEST_DIR=<输出目录> MINECRAFT_BLOCKBENCH_PLUGIN_FILE=<构建产物>
+node scripts/desktop-acceptance.mjs --confirm-isolated-desktop`，并先用隔离配置把编辑器拉起：
+
+```powershell
+# 关键：Electron 程序若继承了 ELECTRON_RUN_AS_NODE=1 会退化成纯 Node 并立刻退出
+Remove-Item Env:\ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+& 'C:\Path\To\Blockbench.exe' --userData D:\temp\bb-profile --remote-debugging-port=39803
+```
+
 **发布 `1.0.0` 正式版之前仍需完成：**
 
 | 门槛 | 当前状态 |
 |---|---|
-| Desktop 同等流程及撤销恢复 | 待实机验收 |
 | BetterModel / ModelEngine / CraftEngine 引擎流程 | 待对应版本实机验收 |
 | 图形 Minecraft 客户端效果与资源包上传 | 未验收 |
 | 升级回滚、稳定运行与 CI 多平台矩阵 | 待本轮证据收齐 |
 
 `1.0.0-rc.1` 同步了上游 Jason v1.9.3 与 YSMParser v0.3.6，此前这批改动从未在真实编辑器中
-运行过。**本次 Web 实机验收在同步后的构建上覆盖了该风险**：连接、重连、完整编辑流程与截图
-全部通过。Desktop 与三个引擎侧仍未验收。
+运行过。**Web 与 Desktop 两项实机验收都在同步后的构建上完成**：连接、重连、撤销恢复、
+完整编辑流程与截图全部通过。三个引擎侧仍未验收。
 
 实验性 YSM 恢复、链式动画和视觉诊断与稳定编辑功能分开描述。完成代码不等于渲染或游戏验收。
 

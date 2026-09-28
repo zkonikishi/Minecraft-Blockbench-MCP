@@ -24,6 +24,35 @@ This acceptance ran in a headless browser rather than a human-driven session. It
 not claim graphical fidelity of the rendered viewport, Desktop/Electron behaviour, or
 any game-side engine execution.
 
+## 1.0.0-rc.1 Desktop acceptance — 2026-09-28
+
+The installed desktop application was accepted on the same rc.1 build, using an isolated
+`--userData` profile so the real editor's settings and models were never touched.
+
+| Item | Evidence |
+| --- | --- |
+| Application | Installed **Blockbench 5.1.6 Desktop** (Electron 40.10.6, Node 24.15.0); the CDP target reported `isApp: true` |
+| Bridge origin | The WebSocket handshake sent `Origin: file://`, matching the Alpha 4 acceptance item for the installed application |
+| Connection | The editor showed "Minecraft Blockbench MCP connected"; `mc_status` reported the desktop mode with **269** tools (267 desktop default plus 2 relay-side YSM tools) |
+| Undo recovery | The `studio_undo` / `studio_redo` assertions inside `live-workflow.mjs` passed: world transforms survive reparenting and revert, and script keyframes and collections roll back and reapply |
+| Full authoring flow | The same run passed **44/44 calls with exit code 0** |
+| Runtime health | **0** uncaught exceptions; the 4 console events were version banners and an update notice |
+
+Reproduce with an isolated profile and the repository harness:
+
+```powershell
+# An Electron binary that inherits ELECTRON_RUN_AS_NODE=1 runs as plain Node and exits at
+# once; clear it before launching the editor.
+Remove-Item Env:\ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+& 'C:\Path\To\Blockbench.exe' --userData D:\temp\bb-profile --remote-debugging-port=39803
+$env:BLOCKBENCH_TEST_DIR = '<repo>/.test-output'
+$env:MINECRAFT_BLOCKBENCH_PLUGIN_FILE = '<repo>/dist/minecraft_blockbench_mcp.js'
+node scripts/desktop-acceptance.mjs --confirm-isolated-desktop
+```
+
+This ran against a headless-driven desktop window. It does not claim graphical fidelity
+of the viewport or any game-side engine execution.
+
 ## Alpha 5 follow-up
 
 ### Accepted Beta server baseline

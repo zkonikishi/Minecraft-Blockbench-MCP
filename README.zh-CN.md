@@ -7,9 +7,10 @@
 
 **当前发布：`1.0.0-rc.1`（候选版）。** 所有自动化门槛均已通过：类型检查、构建、
 85 项项目回归测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
-**Web 编辑器路径已实机验收通过**：连接、自动重连、视觉截图与完整编辑流程均在
-Blockbench 5.2.1 Web 上通过。**Desktop 与三个引擎的实机验收尚未完成**，见
-[发布门槛](docs/RELEASE-GATES.md)。只有这些门槛通过之后才会发布 `1.0.0` 正式版。
+**两条编辑器路径均已实机验收通过**：连接、自动重连、视觉截图、撤销恢复与完整编辑流程，
+在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过。
+**三个引擎的实机验收尚未完成**，见[发布门槛](docs/RELEASE-GATES.md)。
+只有这些门槛通过之后才会发布 `1.0.0` 正式版。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
 并对接 **BetterModel、ModelEngine、CraftEngine**。
@@ -29,6 +30,8 @@ Blockbench 5.2.1 Web 上通过。**Desktop 与三个引擎的实机验收尚未�
   第三方通知；缺失任何一项，校验门禁都会失败。
 - **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 273 个
   文件，快照可随时与上游重新比对。
+- **两条编辑器路径均已验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
+  Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过。
 - **版本单一来源。** 插件、relay 与 `mc_status` 的版本号全部来自 `package.json`。
 - **YSM 离线恢复。** `mc_ysm_inspect` / `mc_ysm_recover` 与离线 CLI 可从 `.ysm` 容器
   恢复 `.bbmodel`、贴图与骨骼动画，无需启动 Minecraft、YSM Mod 或编辑器。
@@ -195,6 +198,7 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | 发布门禁 | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` —— 暂存 156 个文件，断言许可证与校验和 |
 | 上游锁定 | 每个 vendored 文件都与固定的上游提交一致（273 个文件） |
 | Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，254 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
+| Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：269 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
 
 以下为历史验收记录，列出供参考：
 
