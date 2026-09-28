@@ -29,6 +29,9 @@ previous project and retains any partial import for inspection. No project is
 closed or saved. Preview and server acceptance remain the caller's responsibility.
 
 Local deployment 2026-09-09: default Web catalogue 207 tools. Typecheck/build and
-36 tests passed. Live tool discovery and invalid-input rejection verified without
+36 tests passed. These figures describe this checkpoint build only; the same date
+also records a different Alpha 5 local Web hotfix with 206 tools and 34 tests in
+[local Web lifecycle](LOCAL-WEB-LIFECYCLE.md), and the current suite is 85 tests.
+Live tool discovery and invalid-input rejection verified without
 importing or modifying migration candidates. User-requested content acceptance
 is performed by the content task. This is a local Alpha 5 hotfix, not a new release.

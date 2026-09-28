@@ -22,8 +22,11 @@ Local operational files live in
 - `Start-Minecraft-Blockbench.ps1`: launches a detached supervisor.
 - `supervisor.mjs`: loopback singleton on 39802; checks missing services every
   five seconds, starts only absent listeners, records child exits, never kills
-  existing listeners. The supervisor runs for the current Windows session; it
-  is not a Windows startup service. Run the launcher after a host reboot.
+  existing listeners. The desktop acceptance run in [runtime acceptance](RUNTIME-ACCEPTANCE.md)
+  also starts a relay on 39802, so stop this supervisor before that run; the Web
+  host bootstrap in this document uses 39801. The supervisor runs for the current
+  Windows session; it is not a Windows startup service. Run the launcher after a
+  host reboot.
 - `Probe-Minecraft-Blockbench.mjs`: SDK initialize, tools/list, mc_status; exits
   with failure if disconnected. No secret is printed.
 
@@ -38,7 +41,10 @@ reload restored 206 tools; stopping only the identified relay PID caused the
 supervisor to restart it and the editor to reconnect without a UI action. SDK
 initialize/list/status then returned 206 tools and Web mode. Existing model
 files and the recovery prompt were left untouched. This is a local hotfix over
-Alpha 5, not a newly published GitHub release.
+Alpha 5, not a newly published GitHub release. The 206 tools and 34 tests describe
+this Alpha 5 hotfix build only: other 2026-09-09 records — [JSON import](JSON-IMPORT.md)
+(207 tools, 36 tests) and [Alpha 6](ALPHA-6.md) (207 tools, 39 tests) — are
+different checkpoint builds, and none of them is the current suite of 85 tests.
 
 ## Missing Web build directory
 

@@ -11,7 +11,7 @@ The desktop and Web variants share the same bundle. No three-server process chai
 - `scripts/bundle-options.mjs` applies explicit build transforms: Swag RPC exports and Generic format support; Jason JSON import compatibility; sosadly direct command extraction/client replacement.
 - `src/registry.ts` serializes reads and writes across providers. Each queued call captures the active project and checks it before running.
 - `src/engine-audit.ts` reads exported project data; it is neither engine emulation nor resource-pack generation.
-- `upstream-lock.json` records exact original source bytes. `vendor/` is a selected source snapshot, not a complete clone. Optional upstream Hytale, server UI and original bridge transports are excluded from runtime.
+- `upstream-lock.json` records the pinned upstream sources' own SHA-256 hashes over 225 files (jason 121, SwagRee 96, sosadly 8). `vendor/` is stored with LF line endings and is byte-identical to those commits; `.gitattributes` enforces `vendor/** text eol=lf`, with the YSM `.wasm` kept binary. A fourth source, OpenYSM/YSMParser (4 files under `vendor/ysmparser/`), is pinned by `vendor/ysmparser/provenance.json` instead of the lock. `vendor/` is a selected source snapshot, not a complete clone. Optional upstream Hytale, server UI and original bridge transports are excluded from runtime.
 
 Imported original guides are attribution/reference material. Their names, setup and scope are upstream-specific; use the root README and live prefixed schemas for this integration.
 
@@ -27,8 +27,8 @@ The ordinary tools edit models and can replace or remove content. The advanced t
 
 ## Verification
 
-`npm test` bundles the actual adapter imports and exercises collision-free inventories, provider validation/read calls, queue/project-change behavior, engine rules, upstream hashes and real MCP SDK HTTP/WebSocket communication with a mock editor. `npm run test:upstream` runs 69 selected original shared/host/startup tests with output-path adapters.
+`npm test` bundles the actual adapter imports and exercises collision-free inventories, provider validation/read calls, queue/project-change behavior, engine rules, upstream hashes and real MCP SDK HTTP/WebSocket communication with a mock editor. `npm run test:upstream` runs 117 tests (69 shared/host/startup plus 48 sosadly) with output-path adapters.
 
 `npm run test:live -- --confirm-disposable` creates a fresh project in a connected editor, invokes all three provider families, authors texture/UV/keyframes, obtains a PNG view and verifies embedded bitmap/keyframe data in exported `.bbmodel`. It writes a catalogue, full call evidence, preview and model to the test output directory. This creates a test asset, not a finished creature or game-runtime certification.
 
-Build output contains the plugin, GPL license, third-party notices, dependency license inventory and SHA-256. The esbuild direct-eval warning originates in an advanced upstream UI tool; that tool is disabled by default. No upstream script is represented as a hardened sandbox.
+Build output (`dist/`) contains the plugin bundle `minecraft_blockbench_mcp.js`, the GPL `LICENSE`, `THIRD_PARTY_NOTICES.md`, `SHA256SUMS` and `licenses/` (98 dependency license files, including `sosadly-MIT.txt` and `dependency-inventory.json`). The esbuild direct-eval warning originates in an advanced upstream UI tool; that tool is disabled by default. No upstream script is represented as a hardened sandbox.

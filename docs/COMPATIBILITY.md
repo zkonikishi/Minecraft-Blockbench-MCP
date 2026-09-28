@@ -16,7 +16,7 @@ The user supplied https://wiki.mythiccraft.io/modelengine as the adaptation basi
 
 Example: call `mc_set_bone_behavior` with `target: "modelengine"`, a bone UUID and `behavior: "tail_front"`; for `behavior: "player_limb"`, also provide `limb_type`, such as `"right_forearm"`. Query `mc_modelengine_features` for the complete enum. The helper supports one recognized behavior tag per bone, not arbitrary composite tags. New checks cover ID collisions, direct geometry and AABB dimensions; OBB remains rectangular-capable.
 
-Scriptable keyframes are **reference-only**. The [official instructions](https://wiki.mythiccraft.io/modelengine/Modeling/Scriptable-Keyframes) describe effects-timeline instructions for MythicMobs skills and ModelEngine commands. This MCP has no dedicated script-keyframe writer or server execution verification. Runtime skins, mounts, custom renderers and other server APIs remain outside the editor plugin.
+Scriptable keyframes: the [official instructions](https://wiki.mythiccraft.io/modelengine/Modeling/Scriptable-Keyframes) describe effects-timeline instructions for MythicMobs skills and ModelEngine commands. `mc_script_keyframes` (see [workflow tools](WORKFLOW-TOOLS.md)) reads, upserts and deletes those Instructions keys on the ModelEngine timeline, including `mm:` skills and documented ModelEngine commands. It only writes timeline data; it never runs server skills, and there is **no server-side execution verification**. Missing skills, invalid parameters and unverified runtime semantics remain outside this MCP. Runtime skins, mounts, custom renderers and other server APIs remain outside the editor plugin.
 
 ## Primary references
 

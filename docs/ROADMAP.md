@@ -11,7 +11,7 @@
 ### 拟定结构
 
 - 独立转换核心：`src/converters/ysm/`、`src/converters/armourers-workshop/`，处理输入字节及格式数据，不依赖游戏或编辑器全局对象。
-- 独立离线 CLI：拟设 `scripts/convert-model.mjs`。纯转换无需启动 Minecraft、Mod 或 Blockbench。
+- 独立离线 CLI：已实现 `scripts/convert-model.mjs`（识别与转换，见 [YSM 使用说明](YSM.md)）。纯转换无需启动 Minecraft、Mod 或 Blockbench。
 - MCP 薄封装：提供格式识别、转换和恢复报告；具体工具名、参数在样本验证后确定。
 - 可选编辑器导入：复用 `mc_import_bbmodel`，在已连接的 Blockbench 中新建标签并保留旧工程。只有此步骤需要运行 Blockbench。
 

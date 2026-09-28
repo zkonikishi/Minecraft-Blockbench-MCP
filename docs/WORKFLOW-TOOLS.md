@@ -63,7 +63,7 @@ Variant export removes only native authoring BoundingBoxes and produces independ
 
 ## Validation
 
-`npm run check` covers type checks, 31 tests and bundling. `npm run test:upstream` covers 69 selected upstream tests. `node scripts/live-workflow.mjs --confirm-disposable` creates a new test project and verifies real Web authoring, world transforms under a rotated parent, Undo/Redo, mirrored seam times, script persistence and exports. Set `BLOCKBENCH_TEST_DIR` for evidence files and provide the relay token through the environment.
+`npm run check` covers type checks, 85 tests and bundling. `npm run test:upstream` covers 117 tests (69 shared/host/startup plus 48 sosadly). `node scripts/live-workflow.mjs --confirm-disposable` creates a new test project and verifies real Web authoring, world transforms under a rotated parent, Undo/Redo, mirrored seam times, script persistence and exports. Set `BLOCKBENCH_TEST_DIR` for evidence files and provide the relay token through the environment.
 
 Server AI, MythicMobs skill execution, resource pack generation, exact ModelEngine Dev builds and actual Desktop execution are separate from these editor authoring checks.
 

@@ -11,7 +11,7 @@
 
 [下载发布包](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases) · [Alpha 10 发布页](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/releases/tag/v0.1.0-alpha.10) · [CraftEngine 接入](docs/CRAFTENGINE.md) · [开发路线](docs/ROADMAP.md)
 
-一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 Alpha 10 提供 **235 个默认 Web 编辑器工具 + 2 个离线 YSM 工具**；桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
+一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。发布标签 `v0.1.0-alpha.10` 的发布包为 **235 个默认 Web 编辑器工具**；当前 `Alpha` 分支比该标签多 7 个提交，为 **243 个默认 Web 工具**（启用 Advanced 后 250 个），快速开始中的 `--branch Alpha` 克隆得到的是后者。relay 另提供 2 个离线 YSM 工具（`mc_ysm_inspect`、`mc_ysm_recover`），因此默认 Web 情况下客户端 `tools/list` 看到 **245 个**；桌面版默认 **256 个**，启用 Advanced 后 263 个。桌面版另有文件相关能力，实际可用工具以连接后的 `tools/list` 为准。
 
 ## Alpha 10：YSM 离线恢复
 
@@ -162,7 +162,7 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 
 ## 验证情况
 
-Alpha 9 已通过 51 项整合测试、48 项 sosadly 翅膀/桥接测试及原有上游测试；Web 连通和工具列表另行实测。以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
+Alpha 9 当时通过了 51 项整合测试、48 项 sosadly 翅膀/桥接测试及原有上游测试（51 为 Alpha 9 的历史数字）；当前 `Alpha` 分支的项目回归套件为 **85 项**。Web 连通和工具列表另行实测。以下为 Alpha 8 及注明的历史测试记录，不代表你当前电脑上的连接状态。
 
 | 范围 | 已完成的验证 |
 | --- | --- |
@@ -201,10 +201,10 @@ node scripts/live-workflow.mjs --confirm-disposable
 
 ## 许可证
 
-**GPL-3.0-only**。保留三个上游的作者与许可信息，分发时请同时提供对应源码、许可证与[第三方通知](THIRD_PARTY_NOTICES.md)。详见 [LICENSE](LICENSE)。
+**GPL-3.0-only**。保留四个上游的作者与许可信息，分发时请同时提供对应源码、许可证与[第三方通知](THIRD_PARTY_NOTICES.md)。详见 [LICENSE](LICENSE)。
 
 本项目并非 Blockbench、BetterModel、ModelEngine 或 CraftEngine 官方产品。
 
 ---
 
-**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. Alpha 8 has 211 verified default Web tools and 47 passing regression tests. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.
+**English:** A local MCP for Minecraft modeling, texturing and animation in Blockbench Desktop and Web. Supports BetterModel / ModelEngine creature workflows, CraftEngine item blueprints and furniture references, and native bbmodel / CEM JSON import. The `v0.1.0-alpha.10` release package has 235 default Web tools; the current `Alpha` branch has 243 default Web tools (250 with Advanced enabled), plus two relay-side offline YSM tools, so a default Web `tools/list` sees 245. Desktop has 256 (263 with Advanced). The current project regression suite is 85 tests; Alpha 8 historically had 211 verified default Web tools and 47 passing regression tests. The Alpha branch adds six visual tools not yet in the Alpha 10 release package. Engine and resource-pack acceptance is documented separately from graphical client validation. Alpha 10 adds offline YSM recovery (two relay tools and a CLI), tested on representative V1/V2/BOM V3 samples; Armourer's Workshop remains planned.

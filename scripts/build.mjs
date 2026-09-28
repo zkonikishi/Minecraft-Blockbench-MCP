@@ -6,8 +6,17 @@ import { bundleOptions, root } from './bundle-options.mjs';
 const output = resolve(process.env.BLOCKBENCH_BUILD_DIR || resolve(root,'dist'));
 mkdirSync(output,{recursive:true});
 const file=resolve(output,'minecraft_blockbench_mcp.js');
+// GPL-3.0 section 5(a) requires modified versions to carry prominent notices
+// stating that they were changed. scripts/bundle-options.mjs rewrites vendored
+// sources in memory at build time, so the bundle says so explicitly.
+const banner='/*! Minecraft Blockbench MCP | GPL-3.0-only\n'
+ +' * MODIFIED BUILD. Bundles code from Jason J. Gardner (GPL-3.0-only), SwagRee (MIT)\n'
+ +' * and sosadly (MIT). The vendored sources are adapted at build time; the unmodified\n'
+ +' * upstream snapshots, their SHA-256 hashes and the exact local changes are recorded in\n'
+ +' * upstream-lock.json, scripts/bundle-options.mjs and src/.\n'
+ +' * See THIRD_PARTY_NOTICES.md: https://github.com/zkonikishi/Minecraft-Blockbench-MCP */';
 await build({...bundleOptions(),entryPoints:[resolve(root,'src/main.ts')],format:'iife',outfile:file,
-  banner:{js:'/*! Minecraft Blockbench MCP | GPL-3.0-only | Includes Jason J. Gardner, SwagRee and sosadly code. See source and THIRD_PARTY_NOTICES.md: https://github.com/zkonikishi/Minecraft-Blockbench-MCP */'}});
+  banner:{js:banner}});
 for(const name of ['LICENSE','THIRD_PARTY_NOTICES.md'])writeFileSync(resolve(output,name),readFileSync(resolve(root,name)));
 const licenses=resolve(output,'licenses');mkdirSync(licenses,{recursive:true});
 writeFileSync(resolve(licenses,'sosadly-MIT.txt'),readFileSync(resolve(root,'vendor/sosadly/LICENSE')));

@@ -2,11 +2,14 @@ import {ysmTools,callYsm} from './ysm-tools.mjs';
 import http from 'node:http';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import {readFile} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, ListToolsResultSchema, CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 const fail=message=>({isError:true,content:[{type:'text',text:message}]});
+/** Derived from package.json so the relay banner cannot drift from the release. */
+const VERSION=(()=>{try{return JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version||'unknown';}catch{return 'unknown';}})();
 function equal(a,b){if(typeof a!=='string'||typeof b!=='string')return false;const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&timingSafeEqual(x,y);}
 
 /** A loopback MCP endpoint shared by the desktop and Web plugin. */
@@ -46,7 +49,7 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     if(req.url!=='/mcp'){res.writeHead(404).end();return;}
     if(!equal(req.headers.authorization,`Bearer ${token}`)){res.writeHead(401).end();return;}
     if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'}).end();return;}
-    const server=new Server({name:'minecraft-blockbench-mcp',version:'0.1.0-alpha.10'},{capabilities:{tools:{}}});
+    const server=new Server({name:'minecraft-blockbench-mcp',version:VERSION},{capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[...ysmTools,...tools]}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
     const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});

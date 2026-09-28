@@ -1,12 +1,24 @@
 import {mkdir,lstat,readdir,copyFile,readFile,writeFile} from 'node:fs/promises';
-import {resolve,join,relative} from 'node:path';
+import {resolve,join,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
+/** True when `child` resolves to `parent` itself or to a path beneath it. */
+function isInside(parent,child){
+ const rel=relative(parent,child);
+ return rel===''||(!rel.startsWith('..')&&!isAbsolute(rel));
+}
 export async function stageRelease(output,build=resolve(root,'dist')){
  output=resolve(output);build=resolve(build);
- // Never stage within a source subtree that this operation copies.
- if(!relative(root,output).startsWith('..'))throw Error('Release staging directory must be outside the repository');
+ // Never stage within a source subtree that this operation copies. `relative` is
+ // case-insensitive on Windows and returns an absolute path across drives, so
+ // compare through isInside instead of testing for a leading '..'.
+ if(isInside(root,output))throw Error('Release staging directory must be outside the repository');
+ // The whole build directory is staged: the bundle, its license inventory,
+ // SHA-256 sums and the bundled LICENSE / THIRD_PARTY_NOTICES copies.
+ if(isInside(build,output)||isInside(output,build))throw Error('Build directory and staging directory must not contain each other');
+ try{await lstat(join(build,'minecraft_blockbench_mcp.js'));}
+ catch{throw Error(`Build output is missing minecraft_blockbench_mcp.js: ${build}`);}
  await mkdir(output);const manifest=[];
  async function copy(source,destination){
   const stat=await lstat(source);if(stat.isSymbolicLink())throw Error(`Symlinks are not allowed in release sources: ${relative(root,source)}`);
@@ -17,7 +29,7 @@ export async function stageRelease(output,build=resolve(root,'dist')){
  for(const name of ['package.json','package-lock.json','.env.example','README.md','LICENSE','THIRD_PARTY_NOTICES.md','relay','scripts','docs'])await copy(join(root,name),join(output,name));
  await mkdir(join(output,'src'));await copy(join(root,'src/converters'),join(output,'src/converters'));
  await mkdir(join(output,'vendor'));await copy(join(root,'vendor/ysmparser'),join(output,'vendor/ysmparser'));
- await mkdir(join(output,'dist'));await copy(join(build,'minecraft_blockbench_mcp.js'),join(output,'dist/minecraft_blockbench_mcp.js'));
+ await copy(build,join(output,'dist'));
  await writeFile(join(output,'manifest.json'),JSON.stringify({version:JSON.parse(await readFile(join(root,'package.json'),'utf8')).version,files:manifest},null,2),{flag:'wx'});
  return {output,files:manifest.length};
 }

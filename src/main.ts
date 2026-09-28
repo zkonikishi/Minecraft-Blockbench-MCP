@@ -1,5 +1,6 @@
 import { createRuntime } from './runtime.js';
 import { type ToolRegistry, errorResult } from './registry.js';
+import { VERSION } from './version.js';
 const G=globalThis as any;
 const ID='minecraft_blockbench_mcp';
 // A plugin loaded again from a file must release its previous bridge and actions.
@@ -74,7 +75,7 @@ async function connect(){
 G.Plugin.register(ID,{
   title:'Minecraft Blockbench MCP',author:'zkonikishi; Jason J. Gardner; SwagRee; sosadly',
   description:'Unified Minecraft creature authoring for BetterModel and ModelEngine. Desktop and Web.',
-  icon:'smart_toy',version:'0.1.0-alpha.10',variant:'both',min_version:'5.1.0',
+  icon:'smart_toy',version:VERSION,variant:'both',min_version:'5.1.0',
   onload(){
     loaded=true;
     for(const [key,options] of Object.entries({

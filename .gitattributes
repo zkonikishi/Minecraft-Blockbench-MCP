@@ -4,5 +4,7 @@
 *.js text eol=lf
 *.json text eol=lf
 *.md text eol=lf
-# Preserve upstream snapshot bytes exactly on every OS for hash verification.
-vendor/** -text
+# Vendor snapshots are stored as LF so the committed bytes stay byte-identical to
+# the pinned upstream sources recorded in upstream-lock.json on every OS.
+vendor/** text eol=lf
+vendor/ysmparser/*.wasm binary

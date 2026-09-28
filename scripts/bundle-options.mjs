@@ -2,8 +2,11 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 export const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
+/** Single source of truth for every advertised version string. */
+export const version = JSON.parse(readFileSync(resolve(root,'package.json'),'utf8')).version;
 export function bundleOptions() {
   return {bundle:true,platform:'neutral',target:'es2022',legalComments:'inline',mainFields:['module','main'],external:['fs','path','net'],
+    define:{__MCP_VERSION__:JSON.stringify(version)},
     alias:{'@/lib/factories':resolve(root,'src/jason-factory.ts'),'@':resolve(root,'vendor/jason'),
       '@blockbench-mcp/shared':resolve(root,'vendor/swag/packages/shared/src/index.ts')},
     plugins:[{name:'upstream-adapters',setup(build){
