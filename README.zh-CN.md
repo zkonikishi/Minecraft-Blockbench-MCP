@@ -7,8 +7,9 @@
 
 **当前发布：`1.0.0-rc.1`（候选版）。** 所有自动化门槛均已通过：类型检查、构建、
 85 项项目回归测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
-**编辑器与游戏客户端的实机验收尚未完成**，见[发布门槛](docs/RELEASE-GATES.md)。
-只有这些门槛通过之后才会发布 `1.0.0` 正式版。
+**Web 编辑器路径已实机验收通过**：连接、自动重连、视觉截图与完整编辑流程均在
+Blockbench 5.2.1 Web 上通过。**Desktop 与三个引擎的实机验收尚未完成**，见
+[发布门槛](docs/RELEASE-GATES.md)。只有这些门槛通过之后才会发布 `1.0.0` 正式版。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
 并对接 **BetterModel、ModelEngine、CraftEngine**。
@@ -187,8 +188,9 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | 项目回归 | `npm run check` —— 类型检查、构建与 85 项测试 |
 | 上游适配 | `npm run test:upstream` —— 117 项测试（69 项 shared/host/startup + 48 项 sosadly） |
 | 依赖审计 | `npm audit --omit=dev --audit-level=moderate` —— 0 项告警 |
-| 发布门禁 | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` —— 暂存 155 个文件，断言许可证与校验和 |
+| 发布门禁 | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` —— 暂存 156 个文件，断言许可证与校验和 |
 | 上游锁定 | 每个 vendored 文件都与固定的上游提交一致（273 个文件） |
+| Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，254 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
 
 以下为历史验收记录，列出供参考：
 
@@ -212,6 +214,9 @@ npm.cmd run test:upstream
 # 以下操作会在专用测试编辑器中新建工程：
 npm.cmd run test:live -- --confirm-disposable
 node scripts/live-workflow.mjs --confirm-disposable
+# Web 编辑器实机验收，在无头浏览器中运行（一次性安装：npm i playwright-core）：
+$env:MINECRAFT_BLOCKBENCH_TOKEN = '<你的 relay token>'
+npm.cmd run test:web
 ```
 
 `BLOCKBENCH_BUILD_DIR` 与 `BLOCKBENCH_TEST_DIR` 可分别指定构建及测试产物目录。原始

@@ -58,6 +58,24 @@ potentially trustworthy — so it is not mixed content and an HTTPS page may ope
 The trade-off is that Web Blockbench does not persist a file-installed plugin across a
 page reload, so the file must be loaded again after every reload.
 
+**This path is verified end to end**: connection, automatic reconnect, visual capture
+and the full authoring workflow all pass against Blockbench 5.2.1 Web — see the Web
+acceptance record in [release gates](RELEASE-GATES.md). Reproduce it with
+
+```powershell
+npm i playwright-core
+$env:MINECRAFT_BLOCKBENCH_TOKEN = '<your relay token>'
+node scripts/web-acceptance.mjs
+```
+
+`scripts/web-acceptance.mjs` starts its own relay, drives a headless Chromium-based
+browser (Edge or Chrome, installed ones preferred; `MCP_ACCEPTANCE_BROWSER` overrides),
+restarts the relay mid-run to exercise reconnect, and then runs
+`scripts/live-workflow.mjs` against the connected editor. It needs
+`playwright-core`, which is deliberately not a project dependency because CI has no
+editor. Set `MCP_ACCEPTANCE_EDITOR_URL` to point at a local host instead of the official
+site.
+
 **B. Local Web host (persistent plugin).** Serve a local Blockbench Web checkout on
 `http://127.0.0.1:39801/` and inject the built plugin through
 `scripts/web-host-bootstrap.js`. This survives reloads because the bootstrap registers

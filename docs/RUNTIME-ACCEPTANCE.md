@@ -1,5 +1,29 @@
 # Runtime acceptance — 2026-09-08
 
+## 1.0.0-rc.1 Web acceptance — 2026-09-28
+
+The Web gate that was previously recorded as blocked — connection, reconnect, visual
+capture and the full editing flow — was accepted end to end on the rc.1 build.
+
+| Item | Evidence |
+| --- | --- |
+| Editor | Blockbench **5.2.1 Web**, served from `https://web.blockbench.net` (HTTPS, `isSecureContext === true`) |
+| Bridge | `ws://127.0.0.1:39800/bridge` opened in **7 ms**. A loopback host is a potentially trustworthy origin per the Secure Contexts specification (`127.0.0.0/8`, `::1/128`, `localhost`), so an HTTPS page may open it without a mixed-content block |
+| Connection | `mc_status` → `mode: web`, `version: 1.0.0-rc.1`, **254** tools (`tools/list` = 256) |
+| Reconnect | After the relay was stopped and restarted on the same port, the plugin re-established the bridge **by itself in about 2 seconds**, with no editor-side action |
+| Visual | `craft_capture_views` returned `image/png`, 25,260 bytes, written to the test output directory |
+| Full authoring flow | `scripts/live-workflow.mjs --confirm-disposable`: **44/44 calls passed, exit code 0** — project creation, creature scaffold, animation sets, texture and UV packing, keyframes and mirroring, animated preview, reparenting with undo/redo, hitboxes, control nodes, script keyframes, collections, engine variant export and a captured preview |
+
+The harness is `scripts/web-acceptance.mjs` (requires `npm i playwright-core` and an
+installed Chromium-based browser). It drives a headless browser, installs the built
+plugin, restarts the relay mid-run to exercise reconnect, and then runs the live
+workflow. It needs no editor host of its own: the official Web editor is used, and the
+plugin is injected into the running page.
+
+This acceptance ran in a headless browser rather than a human-driven session. It does
+not claim graphical fidelity of the rendered viewport, Desktop/Electron behaviour, or
+any game-side engine execution.
+
 ## Alpha 5 follow-up
 
 ### Accepted Beta server baseline

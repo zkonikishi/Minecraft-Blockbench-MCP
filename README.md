@@ -7,9 +7,11 @@
 
 **Current release: `1.0.0-rc.1` (release candidate).** Every automated gate passes:
 type checking, build, 85 project regression tests, 117 upstream tests, a clean
-production dependency audit, and staged-release verification. **Real-editor and
-in-game acceptance is not finished yet** — see [release gates](docs/RELEASE-GATES.md).
-A final `1.0.0` is published only after those gates pass.
+production dependency audit, and staged-release verification. The **Web editor path is
+accepted end to end** — connection, automatic reconnect, visual capture and the full
+authoring workflow all pass against Blockbench 5.2.1 Web. **Desktop and engine
+acceptance is still outstanding** — see [release gates](docs/RELEASE-GATES.md). A final
+`1.0.0` is published only after those gates pass.
 
 Let AI author Minecraft models, textures and skeletal animation in **Blockbench
 Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
@@ -210,8 +212,9 @@ Automated, reproducible today:
 | Project regression | `npm run check` — type checking, build and 85 tests |
 | Upstream adaptation | `npm run test:upstream` — 117 tests (69 shared/host/startup plus 48 sosadly) |
 | Dependency audit | `npm audit --omit=dev --audit-level=moderate` — 0 advisories |
-| Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 155 staged files, licenses and checksums asserted |
+| Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 156 staged files, licenses and checksums asserted |
 | Upstream pin | Every vendored file matches the pinned upstream commit (273 files) |
+| Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 254 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
 
 Historic acceptance records, listed for context:
 
@@ -236,6 +239,9 @@ npm.cmd run test:upstream
 # The following create a new project in a dedicated test editor:
 npm.cmd run test:live -- --confirm-disposable
 node scripts/live-workflow.mjs --confirm-disposable
+# Web editor acceptance in a headless browser (one-off: npm i playwright-core):
+$env:MINECRAFT_BLOCKBENCH_TOKEN = '<your relay token>'
+npm.cmd run test:web
 ```
 
 `BLOCKBENCH_BUILD_DIR` and `BLOCKBENCH_TEST_DIR` set the build and test output
