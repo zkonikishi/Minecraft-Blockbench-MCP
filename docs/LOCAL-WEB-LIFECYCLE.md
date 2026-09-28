@@ -46,16 +46,55 @@ this Alpha 5 hotfix build only: other 2026-09-09 records — [JSON import](JSON-
 (207 tools, 36 tests) and [Alpha 6](ALPHA-6.md) (207 tools, 39 tests) — are
 different checkpoint builds, and none of them is the current suite of 85 tests.
 
-## Missing Web build directory
+## Two supported ways to run the Web editor
 
-If the editor listens but logs `Failed to create output directory`, inspect its
-`dist` junction. On this local host it targets
-`D:/Servers/AI/Data/Codex/builds/blockbench-web-host`. Restore a missing target
-and run `node build.js --target=web` in the host checkout. Preserve the junction
-and all model files. The local supervisor now creates the target at startup.
-This operational repair does not change the Alpha 8 release.
+**A. Official editor, plugin loaded from file (no local host required).** Open
+`https://web.blockbench.net`, use **File → Plugins → Load Plugin from File** and select
+`minecraft_blockbench_mcp.js`, then set the token and choose **Tools → Connect
+Minecraft MCP**. The relay already allows the official origins, and the bridge URL
+`ws://127.0.0.1:39800` is a *potentially trustworthy* origin — the Secure Contexts
+specification classifies hosts in `127.0.0.0/8`, `::1/128` and `localhost` as
+potentially trustworthy — so it is not mixed content and an HTTPS page may open it.
+The trade-off is that Web Blockbench does not persist a file-installed plugin across a
+page reload, so the file must be loaded again after every reload.
 
-Verify the editor page, `dist/bundle.js`, and plugin asset separately. HTTP 200
+**B. Local Web host (persistent plugin).** Serve a local Blockbench Web checkout on
+`http://127.0.0.1:39801/` and inject the built plugin through
+`scripts/web-host-bootstrap.js`. This survives reloads because the bootstrap registers
+the plugin on every page load. It requires maintaining a separate Blockbench checkout.
+
+## Why the editor bridge was recorded as disconnected
+
+The local editor host is a **separate Blockbench checkout and is not part of this
+repository**. The recorded blocker came from that checkout living under a build cache,
+`D:/Servers/AI/Data/Codex/cache/blockbench-merge-20260907/blockbench-host`, which was
+later removed by cache cleanup. `supervisor.mjs` still starts the editor with
+`build.js --target=web --serve` in that directory, so once the directory is gone the
+editor never starts, no editor ever connects to the relay, and `mc_status` reports a
+disconnected bridge. The relay itself was healthy throughout.
+
+The same supervisor also creates the junction target
+`D:/Servers/AI/Data/Codex/builds/blockbench-web-host` at startup. The editor's own
+command is what every `mc_status` depends on, so check it first.
+
+`editor.supervised.log` distinguishes the cases:
+
+- `Failed to create output directory: mkdir ...\dist: Cannot create a file when that
+  file already exists` — the checkout exists but `dist` is already present as a
+  junction, and the build script calls `mkdir` without tolerating that. Point the
+  junction at `D:/Servers/AI/Data/Codex/builds/blockbench-web-host`, or remove the
+  stale `dist`, then run `node build.js --target=web`.
+- no output and no listener on the editor port — the checkout directory itself is
+  missing; restore or re-clone a Blockbench Web checkout into the path the supervisor
+  uses, or switch to option A above.
+
+`node --env-file=.env scripts/doctor.mjs` separates the three independent services:
+the relay, the editor host page, and the editor's own connection. It reports the editor
+host URL and status in its JSON and gives a different message for each failure, so a
+missing editor host is never confused with a disconnected editor. Set
+`MINECRAFT_BLOCKBENCH_EDITOR_URL` when the host is not on `http://127.0.0.1:39801/`.
+
+Verify the editor page, its `dist/bundle.js`, and the plugin asset separately. HTTP 200
 proves asset availability; only a successful `mc_status` proves editor connection.
-Browser-control errors are separate from relay availability. The local probe now
-reports disconnection without an uncaught exception, with a nonzero exit code.
+Browser-control errors are separate from relay availability.
+

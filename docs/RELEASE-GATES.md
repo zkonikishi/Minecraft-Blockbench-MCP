@@ -43,7 +43,11 @@ node scripts/verify-release.mjs D:/releases/new-stage
 
 | 门槛 | 当前状态 |
 |---|---|
-| Web 编辑器连接、重连、视觉及完整编辑流程 | **阻塞：编辑器桥接断开** |
+| Web 编辑器连接、重连、视觉及完整编辑流程 | **阻塞：编辑器桥接断开**。根因已定位：本地 Web 编辑器宿主是一个**仓库之外**的独立 Blockbench checkout，位于构建缓存目录下，已被缓存清理删除；编辑器因此从未启动，与 relay 是否健康无关。详见[本地 Web 生命周期](LOCAL-WEB-LIFECYCLE.md) |
+
+> 编辑器桥接的三类失败（relay 不可达 / 编辑器宿主未服务 / 编辑器宿主正常但插件未连接）现在由
+> `node --env-file=.env scripts/doctor.mjs` 分别报告，各有明确处置建议，不再只给出一行“断开”。
+> 解除该阻塞有两条路：使用官方 Web 编辑器并每次从文件加载插件，或恢复本地 Web 宿主。
 | Desktop 同等流程及撤销恢复 | 待实机验收 |
 | BetterModel / ModelEngine / CraftEngine 引擎流程 | 待对应版本实机验收 |
 | 图形 Minecraft 客户端效果与资源包上传 | 未验收 |
