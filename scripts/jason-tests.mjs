@@ -7,7 +7,7 @@
 //
 // Bun is a test-only tool here; it is not a dependency of the published package.
 import {spawnSync} from 'node:child_process';
-import {existsSync} from 'node:fs';
+import {existsSync, mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -32,13 +32,26 @@ if (!bun) {
   process.exit(1);
 }
 
+// Point the system temp directory at a plain path inside the workspace.
+//
+// tests/helpers/tool-fixture.ts writes a bundle and then does `import(bundle)` with a bare
+// absolute path rather than a file:// URL. On macOS the system temp directory is reached
+// through the /var -> /private/var symlink, and that import fails to resolve, which takes
+// down every fixture-based test. Upstream only ever runs this suite on ubuntu, so the case
+// is untested there. A workspace-local temp root has no symlink in its path and avoids it
+// on every platform, without editing a single vendored file.
+const tempRoot = resolve(root, '.test-output/jason-tmp');
+mkdirSync(tempRoot, {recursive: true});
+const env = {...process.env, TMPDIR: tempRoot, TMP: tempRoot, TEMP: tempRoot};
+
 // --timeout: the suite's default 5 s is too tight for machines where spawning a child and
 // resolving the fixture's module graph is slow. Upstream's own CI is faster; the value is
 // a runner setting, not a change to the vendored tests.
 const args = ['test', '--timeout', '30000', ...process.argv.slice(2)];
 console.log(`bun ${args.join(' ')}  (cwd: vendor/jason, executable: ${bun})`);
+console.log(`temp root: ${tempRoot}`);
 
-const result = spawnSync(bun, args, {cwd: suiteDir, stdio: 'inherit', env: process.env});
+const result = spawnSync(bun, args, {cwd: suiteDir, stdio: 'inherit', env});
 if (result.error) {
   console.error(`Failed to run Bun: ${result.error.message}`);
   process.exit(1);

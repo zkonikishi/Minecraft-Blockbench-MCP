@@ -5,7 +5,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Current release: `1.1.0`.** Every automated gate passes on a 10-job matrix
+**Current release: `1.1.0`.** Every automated gate passes; CI runs a 10-job matrix
 (ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26, plus the vendored Jason
 upstream suite on all three platforms): type checking, build, 85 project regression tests,
 117 SwagRee/sosadly tests, 1035 vendored Jason tests, a clean production dependency audit
@@ -236,7 +236,7 @@ Automated, reproducible today:
 | Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 264 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
 | Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 279 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
 | Engine acceptance | Isolated Paper 26.3 build 49 with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0: ModelEngine imported the exported blueprint, BetterModel packed 13 bone models into `build.zip`, and CraftEngine generated a resource pack containing `assets/mcp_ce/*` |
-| CI matrix | 10 jobs green: 7 platform/Node checks (ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26) and 3 runs of the vendored Jason upstream suite |
+| CI matrix | 10 jobs: 7 platform/Node checks (ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26) and 3 runs of the vendored Jason upstream suite |
 | Vendored upstream suite | `npm run test:jason` — 1035 tests across 76 files, run unmodified with `bun test` from inside `vendor/jason` |
 | Upgrade and rollback | From the released `v0.1.0-alpha.10` to `1.0.0` and back: the open project and the token survived both, the model shape stayed identical, and import returns `previousProject` instead of overwriting |
 | Stability soak | 15 minutes: 284 calls plus 224 concurrent calls with **0 failures**, 9 relay restarts all recovered by the plugin, handles 13 → 13 and no memory growth |
