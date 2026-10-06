@@ -1,6 +1,6 @@
 {
   "name": "minecraft-blockbench-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Unified desktop and Web Blockbench MCP for BetterModel, ModelEngine and CraftEngine authoring",
   "license": "GPL-3.0-only",
@@ -16,7 +16,8 @@
     "test:upstream": "node scripts/upstream-tests.mjs",
     "test:live": "node scripts/live-smoke.mjs",
     "test:web": "node scripts/web-acceptance.mjs",
-    "start": "node --env-file-if-exists=.env relay/cli.mjs"
+    "start": "node --env-file-if-exists=.env relay/cli.mjs",
+    "test:jason": "node scripts/jason-tests.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/node": "22.19.0",
     "esbuild": "0.25.12",
+    "three": "^0.181.1",
     "typescript": "5.9.3"
   },
   "repository": {

@@ -3,6 +3,56 @@
 > 下列 `1.0.0-rc.1` 验收记录是 `1.0.0` 的验收依据：`1.0.0` 与该构建仅差版本常量，
 > 把版本串还原后两者逐字节相同。
 
+## 1.1.0 — Jason upstream sync, 2026-10-06
+
+Jason's plugin moved from `6295e20a` (v1.9.3) to `d0271716` (**v1.10.0**, 78 commits). The
+other two upstreams were already at their latest commits when checked.
+
+What changed on our side:
+
+| Item | Before | After |
+| --- | --- | --- |
+| Vendored Jason files | 169 | **324** (adds `tests/**`, the new GeckoLib sources, and the modules the suite needs) |
+| Pinned upstream files, all three trees | 273 | **428** (jason 324, SwagRee 96, sosadly 8) |
+| Web editor tools (runtime) | 254 | **264** (+10 GeckoLib) |
+| Desktop editor tools (`tools/list`) | 269 | **279** |
+| Staged package files | 156 | **158** |
+| Plugin bundle | 1,761,400 B | 1,865,798 B |
+
+New capability: a **GeckoLib family** — `studio_geckolib_export_model`, `…_export_animations`,
+`…_export_display`, `…_validate_model`, `…_get_format_info`, `…_list_easings`,
+`…_get_keyframe_easing`, `…_set_keyframe_easing`, `…_reverse_keyframe_easing`,
+`…_set_project_settings`. Upstream also landed undo-correctness fixes (armature bone
+restore, texture-selection undo), a captured-project callback fix, and a path-safety fix
+that refuses device names in export paths.
+
+### Re-verification on the synced build
+
+| Item | Result |
+| --- | --- |
+| Web acceptance | Re-run on 1.1.0: connected, 264 tools, `live-workflow` 44/44, exit 0 |
+| Desktop acceptance | Re-run on 1.1.0 with an isolated `--userData` profile: `{"application":{"version":"5.1.6","isApp":true},"tools":279,"workflowExit":0,"accepted":true}` |
+| Engine acceptance | Not re-run against a server; instead the artifacts were compared. A fresh 1.1.0 export is **structurally identical** to the 1.0.0 export the engines loaded — element geometry, UVs, rotations and pivots, bone hierarchy by name, the entire animation section (UUID-normalised), embedded textures, resolution and format all match. The only differences are randomly generated UUIDs and Blockbench's randomly assigned cube display colours, so the engine results carry over unchanged. |
+| Vendored upstream suite | **1035/1035** tests across 76 files, run unmodified with `bun test` from inside `vendor/jason` |
+| Project and SwagRee/sosadly suites | 85/85 and 117/117 |
+| Dependency advisories | `npm audit --omit=dev` began reporting 3 advisories in transitive packages (`proxy-addr` critical, `ip-address` and `fast-uri` moderate) after the advisory database was updated; `npm audit fix` bumped them within semver (`proxy-addr` 2.0.7 → 2.0.8, `ip-address` 10.7.0 → 10.7.3, `fast-uri` 3.1.7 → 3.1.8) and the audit is back to 0 |
+
+### Running the vendored upstream suite
+
+The suite is written for Bun and uses only `bun:test` primitives, so it runs unmodified —
+no Node shim and no patched expectations. It is executed from inside `vendor/jason` so that
+directory's own `@/*` → `./*` path mapping applies, exactly as it does upstream.
+
+```powershell
+npm i --no-save bun          # or install Bun however you prefer, and put it on PATH
+npm run test:jason
+```
+
+Bun is a test-only tool and is deliberately not a dependency of the published package; CI
+installs it with `oven-sh/setup-bun`. `scripts/jason-tests.mjs` runs the suite with
+`--timeout 30000`, because the suite's default 5 s is too tight on machines where spawning
+a child and resolving the fixture's module graph is slow.
+
 ## 1.0.0-rc.1 Web acceptance — 2026-09-28
 
 The Web gate that was previously recorded as blocked — connection, reconnect, visual

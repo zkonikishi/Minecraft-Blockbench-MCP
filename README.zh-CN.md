@@ -5,24 +5,26 @@
 
 [English](README.md) | **简体中文**
 
-**当前发布：`1.0.0`。** 所有自动化门槛均已通过，CI 为 **7 个任务的矩阵**（ubuntu /
-windows / macos × Node 22、24，外加 ubuntu × Node 26）：类型检查、构建、85 项项目回归
-测试、117 项上游测试、生产依赖审计无告警，以及发布包校验。
+**当前发布：`1.1.0`。** 所有自动化门槛均已通过，CI 为 **10 个任务**（7 个平台/Node 检查：ubuntu /
+windows / macos × Node 22、24，外加 ubuntu × Node 26；另有 3 个任务在三个平台运行 vendored
+Jason 上游测试套件）：类型检查、构建、85 项项目回归测试、117 项 SwagRee/sosadly 测试、
+1035 项 vendored Jason 测试、生产依赖审计无告警，以及发布包校验。
 **编辑器、引擎、升级回滚与稳定运行均已验收**：连接、自动重连、视觉截图、撤销恢复与完整
 编辑流程，在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的
 模型在 Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0 上
 成功加载并生成资源包；从已发布的 `v0.1.0-alpha.10` 升级与回滚都保留了打开的工程与 token；
 15 分钟浸泡 + 9 次 relay 重启无失败、无句柄泄漏、无内存增长。
-**图形客户端观感不在 `1.0.0` 的验收范围内**，作为已知限制列出，见
+**图形客户端观感不在验收范围内**，作为已知限制列出，见
 [发布门槛](docs/RELEASE-GATES.md)。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
 并对接 **BetterModel、ModelEngine、CraftEngine**。
 
 一个 Blockbench 插件、一个本地 MCP 服务，共用串行执行队列。当前 `Alpha` 分支提供
-**254 个默认 Web 编辑器工具**（启用 Advanced 后 **261 个**），另有 **2 个离线 YSM
-工具**，因此默认 Web 客户端 `tools/list` 看到 **256 个**；桌面版为 **267 个**
-（启用 Advanced 后 **274 个**），并另有文件相关能力。实际可用工具以连接后的
+**264 个默认 Web 编辑器工具**（启用 Advanced 后 **271 个**），另有 **2 个离线 YSM
+工具**，因此默认 Web 客户端 `tools/list` 看到 **266 个**；桌面版为 **277 个**
+（启用 Advanced 后 **284 个**，`tools/list` 分别为 279 / 286），并另有文件相关能力。
+其中 10 个是 1.1.0 新增的 GeckoLib 工具族。实际可用工具以连接后的
 `tools/list` 为准。
 
 ## 本次发布内容
@@ -32,7 +34,7 @@ windows / macos × Node 22、24，外加 ubuntu × Node 26）：类型检查、�
   提交逐字节一致。
 - **可校验的发布包。** 暂存包现在包含 98 个依赖许可证文件、`SHA256SUMS`、GPL 正文与
   第三方通知；缺失任何一项，校验门禁都会失败。
-- **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 273 个
+- **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 428 个
   文件，快照可随时与上游重新比对。
 - **编辑器与引擎均已验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
   Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的模型在
@@ -95,7 +97,7 @@ npm.cmd start
 `dist/minecraft_blockbench_mcp.js`。单独下载插件 JS 不能代替本地服务。
 
 发布页会为每个产物列出 SHA-256 摘要，因此无需额外的校验文件即可核对下载。ZIP 包内的
-`manifest.json` 记录了全部 156 个文件的 SHA-256，`dist/SHA256SUMS` 覆盖插件 bundle；
+`manifest.json` 记录了全部 158 个文件的 SHA-256，`dist/SHA256SUMS` 覆盖插件 bundle；
 安装依赖后可执行 `node scripts/verify-release.mjs <解压目录>` 重新校验整份清单。
 
 ### 2. 连接 Blockbench
@@ -201,12 +203,13 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | 项目回归 | `npm run check` —— 类型检查、构建与 85 项测试 |
 | 上游适配 | `npm run test:upstream` —— 117 项测试（69 项 shared/host/startup + 48 项 sosadly） |
 | 依赖审计 | `npm audit --omit=dev --audit-level=moderate` —— 0 项告警 |
-| 发布门禁 | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` —— 暂存 156 个文件，断言许可证与校验和 |
-| 上游锁定 | 每个 vendored 文件都与固定的上游提交一致（273 个文件） |
-| Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，254 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
-| Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：269 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
+| 发布门禁 | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` —— 暂存 158 个文件，断言许可证与校验和 |
+| 上游锁定 | 每个 vendored 文件都与固定的上游提交一致（428 个文件） |
+| Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，264 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
+| Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：279 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
 | 引擎实机 | 隔离 Paper 26.3 build 49 + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0：ModelEngine 导入导出的 blueprint、BetterModel 把 13 个骨骼模型打进 `build.zip`、CraftEngine 生成的资源包含 `assets/mcp_ce/*` |
-| CI 多平台矩阵 | 7 个任务全绿：ubuntu / windows / macos × Node 22、24，外加 ubuntu × Node 26 |
+| CI 多平台矩阵 | 10 个任务全绿：7 个平台/Node 检查（ubuntu / windows / macos × Node 22、24，外加 ubuntu × Node 26）+ 3 个 vendored Jason 上游套件 |
+| Vendored 上游套件 | `npm run test:jason` —— 76 个文件、1035 项测试，在 `vendor/jason` 内用 `bun test` 原样运行 |
 | 升级与回滚 | 从线上 `v0.1.0-alpha.10` 升级到 `1.0.0` 再回滚：打开的工程与 token 始终保留，模型形状完全一致，导入时返回 `previousProject` 不覆写 |
 | 稳定运行 | 15 分钟浸泡：284 次调用 + 224 次并发调用 **0 失败**，9 次 relay 重启全部自愈，句柄 13→13、内存无增长 |
 

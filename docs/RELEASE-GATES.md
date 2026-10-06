@@ -1,7 +1,7 @@
 # 发布收尾与验收门槛
 
-**当前状态：`1.0.0` 已发布。** 下表的人工 / 实机门槛中，Web、Desktop、三个引擎、升级
-与回滚、稳定运行、CI 多平台矩阵均已通过。**图形 Minecraft 客户端观感未纳入 `1.0.0` 的
+**当前状态：`1.1.0` 已发布。** 下表的人工 / 实机门槛中，Web、Desktop、三个引擎、升级
+与回滚、稳定运行、CI 多平台矩阵均已通过。**图形 Minecraft 客户端观感未纳入本版本的
 验收范围**，作为已知限制写在下方；它不是服务端或编辑器侧的缺陷。
 
 验收证据中出现的 `1.0.0-rc.1` 是本次实机验收所用的构建。`1.0.0` 与该构建**仅差版本
@@ -37,8 +37,10 @@ node scripts/verify-release.mjs D:/releases/new-stage
 | 类型检查、构建、85 项项目回归 | `npm run check` |
 | 上游适配测试（117 项） | `npm run test:upstream` |
 | 生产依赖审计 | `npm audit --omit=dev --audit-level=moderate`，0 项告警 |
-| 暂存包校验（156 个文件、许可证与校验和） | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` |
-| 上游锁定一致性（273 个文件逐个比对） | 与固定上游提交逐字节一致 |
+| 暂存包校验（158 个文件、许可证与校验和） | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` |
+| 上游锁定一致性（428 个文件逐个比对） | 与固定上游提交逐字节一致 |
+| **Vendored Jason 上游测试套件** | **1035/1035 通过**（76 个文件），用 `bun test` 原样运行 |
+| **CI 多平台矩阵** | **10 个任务**：7 个平台/Node 检查 + 3 个上游套件任务，全部通过 |
 | **Web 编辑器连接、重连、视觉及完整编辑流程** | **已实机通过**，证据见下表 |
 | **Desktop 同等流程及撤销恢复** | **已实机通过**，证据见下表 |
 | **BetterModel / ModelEngine / CraftEngine 引擎流程** | **已实机通过**，证据见下表 |
@@ -52,7 +54,7 @@ Web 实机验收记录：
 |---|---|
 | 编辑器 | Blockbench **5.2.1 Web**，来源 `https://web.blockbench.net`（HTTPS，`isSecureContext=true`） |
 | 桥接 | `ws://127.0.0.1:39800/bridge` 在 **7 ms** 内 OPEN。loopback 属于“潜在可信来源”（Secure Contexts 规范：主机 `127.0.0.0/8`、`::1/128`、`localhost`），HTTPS 页面打开它不属于混合内容，浏览器不拦 |
-| 连接 | `mc_status` → `mode: web`、`version: 1.0.0-rc.1`、**254** 个工具（`tools/list` 256） |
+| 连接 | `mc_status` → `mode: web`、`version: 1.1.0`、**264** 个工具（`tools/list` 266，Advanced 273） |
 | 重连 | 停止并重启 relay 后，编辑器在约 **2 秒**内**自行重连**，编辑器侧无需任何操作 |
 | 视觉 | `craft_capture_views` 返回 `image/png`（25,260 字节） |
 | 完整编辑流程 | `scripts/live-workflow.mjs --confirm-disposable` 共 **44 次调用全部通过，退出码 0**：建模、贴图与 UV、关键帧与镜像、重连预览、撤销/重做、碰撞箱、控制节点、脚本关键帧、集合、引擎变体导出与截图 |
@@ -66,7 +68,7 @@ Desktop 实机验收记录（隔离 `--userData` 配置，未触碰真实编辑�
 |---|---|
 | 应用 | 已安装的 **Blockbench 5.1.6 Desktop**（Electron 40.10.6 / Node 24.15.0），CDP 上报 `isApp: true` |
 | 桥接 Origin | WebSocket 握手 `Origin: file://` —— 与 Alpha 4 的验收项一致，安装版会发本地文件来源 |
-| 连接 | 编辑器弹出 “Minecraft Blockbench MCP connected”；`mc_status` → 桌面模式、**269** 个工具（桌面默认 267 + 2 个 YSM） |
+| 连接 | 编辑器弹出 “Minecraft Blockbench MCP connected”；`mc_status` → 桌面模式、**279** 个工具（桌面默认 277 + 2 个 YSM） |
 | 撤销恢复 | `live-workflow.mjs` 内的 `studio_undo` / `studio_redo` 断言全部通过（重父级后世界变换不变、脚本关键帧与集合的回滚/重做） |
 | 完整编辑流程 | 同一次运行 **44 次调用全部通过，退出码 0** |
 | 运行时异常 | **0** 个未捕获异常（4 条控制台日志为 Electron/Three.js/Blockbench 版本与更新提示） |
@@ -119,7 +121,7 @@ Remove-Item Env:\ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 | 活跃句柄 | 13 → 13（**+0**，无句柄泄漏） |
 | 结束时状态 | 编辑器仍处于连接状态 |
 
-**`1.0.0` 的已知限制**（不阻塞发布，但用户应当知道）：
+**本版本的已知限制**（不阻塞发布，但用户应当知道）：
 
 | 项目 | 状态 |
 |---|---|

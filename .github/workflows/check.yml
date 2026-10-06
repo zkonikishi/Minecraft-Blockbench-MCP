@@ -34,3 +34,23 @@ jobs:
         with:
           name: minecraft-blockbench-mcp-${{ matrix.os }}-node${{ matrix.node }}
           path: dist/
+
+  # The vendored Jason (studio_*) sources ship with their own upstream test suite. It is
+  # written for `bun test`, so it needs Bun rather than Node; run it on every platform.
+  jason-upstream-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: npm ci --ignore-scripts
+      - run: npm run test:jason

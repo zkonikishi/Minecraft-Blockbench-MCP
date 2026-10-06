@@ -68,8 +68,8 @@ an official Blockbench, BetterModel or ModelEngine project.
   time; replace HTTP forwarding with direct in-process calls. Do not start its
   original bridge or register its original plugin.
 
-`upstream-lock.json` records 273 selected upstream files and the pinned sources'
-own SHA-256 hashes across the three source trees above: jason 169, SwagRee 96 and
+`upstream-lock.json` records 428 selected upstream files and the pinned sources'
+own SHA-256 hashes across the three source trees above: jason 324, SwagRee 96 and
 sosadly 8. Vendored sources are stored with LF line endings and are byte-identical
 to those commits. The fourth source, OpenYSM/YSMParser, is pinned by
 `vendor/ysmparser/provenance.json` instead of the lock. Local integration changes

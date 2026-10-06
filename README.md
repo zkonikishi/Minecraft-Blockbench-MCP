@@ -5,27 +5,28 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Current release: `1.0.0`.** Every automated gate passes on a 7-job matrix
-(ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26): type checking, build,
-85 project regression tests, 117 upstream tests, a clean production dependency audit and
-staged-release verification. **Editor, engine, upgrade-rollback and stability acceptance
+**Current release: `1.1.0`.** Every automated gate passes on a 10-job matrix
+(ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26, plus the vendored Jason
+upstream suite on all three platforms): type checking, build, 85 project regression tests,
+117 SwagRee/sosadly tests, 1035 vendored Jason tests, a clean production dependency audit
+and staged-release verification. **Editor, engine, upgrade-rollback and stability acceptance
 all pass**: connection, automatic reconnect, visual capture, undo recovery and the full
 authoring workflow against Blockbench 5.2.1 Web and the installed Blockbench 5.1.6
 Desktop; the exported models load and generate resource packs on Paper with ModelEngine
 R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0; upgrading from the released
 `v0.1.0-alpha.10` and rolling back both preserve the open project and the token; and a
 15-minute soak with 9 relay restarts showed no failures, no handle leak and no memory
-growth. **Graphical client rendering is not part of the 1.0.0 acceptance scope** and is
+growth. **Graphical client rendering is not part of the acceptance scope** and is
 listed as a known limitation — see [release gates](docs/RELEASE-GATES.md).
 
 Let AI author Minecraft models, textures and skeletal animation in **Blockbench
 Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
 
 One Blockbench plugin, one local MCP service, one shared serial execution queue. The
-current `Alpha` branch exposes **254 default Web editor tools** (**261** with Advanced
+current `Alpha` branch exposes **264 default Web editor tools** (**271** with Advanced
 enabled) plus **2 offline YSM tools**, so a default Web client's `tools/list` sees
-**256**. Desktop exposes **267** (**274** with Advanced) and adds file-related
-capabilities. Actual availability is whatever `tools/list` returns after connecting.
+**266**. Desktop exposes **277** (**284** with Advanced, 279/286 via `tools/list`) and adds
+file-related capabilities. Ten of these are the GeckoLib family added in 1.1.0. Actual availability is whatever `tools/list` returns after connecting.
 
 ## What is in this release
 
@@ -36,7 +37,7 @@ capabilities. Actual availability is whatever `tools/list` returns after connect
   license inventory, `SHA256SUMS`, the GPL text and the third-party notices, and the
   verification gate fails if any of them is missing.
 - **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
-  own SHA-256 over 273 files, so the snapshot can be re-checked against upstream.
+  own SHA-256 over 428 files, so the snapshot can be re-checked against upstream.
 - **Editor, engine, upgrade and stability acceptance.** Connection, automatic reconnect,
   visual capture, undo recovery and the full authoring workflow pass against Blockbench
   5.2.1 Web and the installed Blockbench 5.1.6 Desktop; the exported models load and
@@ -108,7 +109,7 @@ the local service.
 
 The release page lists a SHA-256 digest for every uploaded asset, so a download can be
 checked without a separate checksum file. Inside the ZIP, `manifest.json` records a
-SHA-256 for all 156 packaged files and `dist/SHA256SUMS` covers the plugin bundle;
+SHA-256 for all 158 packaged files and `dist/SHA256SUMS` covers the plugin bundle;
 after installing dependencies, `node scripts/verify-release.mjs <unpacked-directory>`
 re-checks the whole manifest.
 
@@ -230,12 +231,13 @@ Automated, reproducible today:
 | Project regression | `npm run check` — type checking, build and 85 tests |
 | Upstream adaptation | `npm run test:upstream` — 117 tests (69 shared/host/startup plus 48 sosadly) |
 | Dependency audit | `npm audit --omit=dev --audit-level=moderate` — 0 advisories |
-| Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 156 staged files, licenses and checksums asserted |
-| Upstream pin | Every vendored file matches the pinned upstream commit (273 files) |
-| Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 254 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
-| Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 269 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
+| Release gate | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` — 158 staged files, licenses and checksums asserted |
+| Upstream pin | Every vendored file matches the pinned upstream commit (428 files) |
+| Web editor acceptance | Blockbench 5.2.1 Web over HTTPS: connected (`mode: web`, 264 tools), auto-reconnected in ~2 s after a relay restart, `craft_capture_views` returned a PNG, and `live-workflow` passed 44/44 calls |
+| Desktop editor acceptance | Installed Blockbench 5.1.6 Desktop (`isApp: true`, `Origin: file://`): 279 tools, undo recovery assertions, `live-workflow` 44/44 calls, 0 uncaught exceptions |
 | Engine acceptance | Isolated Paper 26.3 build 49 with ModelEngine R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0: ModelEngine imported the exported blueprint, BetterModel packed 13 bone models into `build.zip`, and CraftEngine generated a resource pack containing `assets/mcp_ce/*` |
-| CI matrix | 7 jobs green: ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26 |
+| CI matrix | 10 jobs green: 7 platform/Node checks (ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26) and 3 runs of the vendored Jason upstream suite |
+| Vendored upstream suite | `npm run test:jason` — 1035 tests across 76 files, run unmodified with `bun test` from inside `vendor/jason` |
 | Upgrade and rollback | From the released `v0.1.0-alpha.10` to `1.0.0` and back: the open project and the token survived both, the model shape stayed identical, and import returns `previousProject` instead of overwriting |
 | Stability soak | 15 minutes: 284 calls plus 224 concurrent calls with **0 failures**, 9 relay restarts all recovered by the plugin, handles 13 → 13 and no memory growth |
 

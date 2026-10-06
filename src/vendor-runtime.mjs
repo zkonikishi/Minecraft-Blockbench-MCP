@@ -5,6 +5,7 @@ import { registerCameraTools } from '../vendor/jason/server/tools/camera.ts';
 import { registerCubesTools } from '../vendor/jason/server/tools/cubes.ts';
 import { registerElementTools } from '../vendor/jason/server/tools/element.ts';
 import { registerExportTools } from '../vendor/jason/server/tools/export.ts';
+import { registerGeckolibTools } from '../vendor/jason/server/tools/geckolib.ts';
 import { registerHistoryTools } from '../vendor/jason/server/tools/history.ts';
 import { registerImportTools } from '../vendor/jason/server/tools/import.ts';
 import { registerMaterialInstanceTools } from '../vendor/jason/server/tools/material-instances.ts';
@@ -24,7 +25,7 @@ let registered = false;
 export function vendorTools() {
   if (!registered) {
     for (const register of [registerDisplayTools,registerAnimationTools,registerArmatureTools,registerCameraTools,registerCubesTools,
-      registerElementTools,registerExportTools,registerHistoryTools,registerImportTools,registerMaterialInstanceTools,
+      registerElementTools,registerExportTools,registerGeckolibTools,registerHistoryTools,registerImportTools,registerMaterialInstanceTools,
       registerMeshTools,registerPaintTools,registerProjectTools,registerTextureTools,registerUITools,registerUVTools]) register();
     registered = true;
   }
