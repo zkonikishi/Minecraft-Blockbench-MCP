@@ -40,7 +40,7 @@ node scripts/verify-release.mjs D:/releases/new-stage
 | 暂存包校验（158 个文件、许可证与校验和） | `scripts/stage-release.mjs` + `scripts/verify-release.mjs` |
 | 上游锁定一致性（428 个文件逐个比对） | 与固定上游提交逐字节一致 |
 | **Vendored Jason 上游测试套件** | **1035/1035 通过**（76 个文件），用 `bun test` 原样运行 |
-| **CI 多平台矩阵** | **10 个任务**：7 个平台/Node 检查 + 3 个上游套件任务 |
+| **CI 多平台矩阵** | **10 个任务全部通过**：7 个平台/Node 检查 + 3 个上游套件任务 |
 | **Web 编辑器连接、重连、视觉及完整编辑流程** | **已实机通过**，证据见下表 |
 | **Desktop 同等流程及撤销恢复** | **已实机通过**，证据见下表 |
 | **BetterModel / ModelEngine / CraftEngine 引擎流程** | **已实机通过**，证据见下表 |

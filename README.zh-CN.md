@@ -5,7 +5,7 @@
 
 [English](README.md) | **简体中文**
 
-**当前发布：`1.1.0`。** 所有自动化门槛均已通过；CI 为 **10 个任务**（7 个平台/Node 检查：ubuntu /
+**当前发布：`1.1.0`。** 所有自动化门槛均已通过，CI 为 **10 个任务**（7 个平台/Node 检查：ubuntu /
 windows / macos × Node 22、24，外加 ubuntu × Node 26；另有 3 个任务在三个平台运行 vendored
 Jason 上游测试套件）：类型检查、构建、85 项项目回归测试、117 项 SwagRee/sosadly 测试、
 1035 项 vendored Jason 测试、生产依赖审计无告警，以及发布包校验。
@@ -208,7 +208,7 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 | Web 编辑器实机 | HTTPS 下的 Blockbench 5.2.1 Web：连接成功（`mode: web`，264 个工具）、relay 重启后约 2 秒自动重连、`craft_capture_views` 返回 PNG、`live-workflow` 44/44 次调用通过 |
 | Desktop 编辑器实机 | 已安装的 Blockbench 5.1.6 Desktop（`isApp: true`，`Origin: file://`）：279 个工具、撤销恢复断言、`live-workflow` 44/44 次调用、0 未捕获异常 |
 | 引擎实机 | 隔离 Paper 26.3 build 49 + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0：ModelEngine 导入导出的 blueprint、BetterModel 把 13 个骨骼模型打进 `build.zip`、CraftEngine 生成的资源包含 `assets/mcp_ce/*` |
-| CI 多平台矩阵 | 10 个任务：7 个平台/Node 检查（ubuntu / windows / macos × Node 22、24，外加 ubuntu × Node 26）+ 3 个 vendored Jason 上游套件 |
+| CI 多平台矩阵 | 10 个任务全绿：7 个平台/Node 检查（ubuntu / windows / macos × Node 22、24，外加 ubuntu × Node 26）+ 3 个 vendored Jason 上游套件 |
 | Vendored 上游套件 | `npm run test:jason` —— 76 个文件、1035 项测试，在 `vendor/jason` 内用 `bun test` 原样运行 |
 | 升级与回滚 | 从线上 `v0.1.0-alpha.10` 升级到 `1.0.0` 再回滚：打开的工程与 token 始终保留，模型形状完全一致，导入时返回 `previousProject` 不覆写 |
 | 稳定运行 | 15 分钟浸泡：284 次调用 + 224 次并发调用 **0 失败**，9 次 relay 重启全部自愈，句柄 13→13、内存无增长 |
