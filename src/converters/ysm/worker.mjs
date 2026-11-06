@@ -7,7 +7,13 @@ let context;let stage="init";
 try {
  context=vm.createContext({console:{log(){},error(){}},WebAssembly,TextDecoder,TextEncoder,setTimeout,clearTimeout,performance,URL});
  vm.runInContext(fs.readFileSync(new URL('YSMParser.js',base),'utf8'),context,{timeout:10000});
- const m=await context.YSMParserModule({noInitialRun:true,wasmBinary:fs.readFileSync(new URL('YSMParser.wasm',base)),print(){},printErr(){}});
+ // The pinned web build does not consume Module.wasmBinary. Instantiate the
+ // trusted local bytes explicitly, without fetch or access to the host filesystem.
+ const wasm=fs.readFileSync(new URL('YSMParser.wasm',base));
+ const m=await context.YSMParserModule({noInitialRun:true,instantiateWasm(imports,receive){
+  const instance=new WebAssembly.Instance(new WebAssembly.Module(wasm),imports);
+  receive(instance);return instance.exports;
+ }});
  const F=m.FS;F.mkdir('/input');F.mkdir('/output');F.writeFile('/input/model.ysm',new Uint8Array(workerData));
  stage='parse';const code=m.callMain(['-i','/input','-o','/output']);
  const files=[];let total=0;

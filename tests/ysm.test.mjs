@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {identifyYsm,recoverYsm} from '../src/converters/ysm/index.mjs';
 import {convertAssets} from '../src/converters/ysm/model.mjs';
 import {callYsm} from '../relay/ysm-tools.mjs';
+import {createYsmFixture} from '../scripts/ysm-fixture.mjs';
 const json=(path,value)=>({path,data:Buffer.from(JSON.stringify(value)).toString('base64')});
 function assets(){
  const cube={origin:[1,2,3],size:[2,3,4],uv:{north:{uv:[1,2],uv_size:[3,4]},up:{uv:[2,3],uv_size:[4,5]}}};
@@ -27,9 +28,23 @@ test('YSM malformed hierarchy and ambiguous texture selection fail explicitly',(
 });
 test('YSM malformed inputs terminate and tool errors are valid without an editor',async()=>{
  assert.equal(identifyYsm(Buffer.from('efbbbf595347500d','hex')).format,'BOM-v3');
- await assert.rejects(recoverYsm(Buffer.from('not a YSM file')),/Parser/);
+ await assert.rejects(recoverYsm(Buffer.from('not a YSM file')),/read output: Parser failed/);
  assert.equal((await callYsm('mc_ysm_recover',{data:'@@'})).isError,true);
  const result=await callYsm('mc_ysm_inspect',{data:Buffer.from('5953475000000002','hex').toString('base64')});assert(!result.isError);assert.equal(JSON.parse(result.content[0].text).containerVersion,2);
+});
+
+test('a valid original fixture traverses WASM, extraction and model conversion',async()=>{
+ const bytes=createYsmFixture(),r=await recoverYsm(bytes),model=r.models[0].model;
+ assert.equal(r.assets.length,3);assert.equal(r.models.length,1);
+ assert.equal(model.elements.length,1);assert.equal(model.textures.length,1);
+ assert.equal(model.animations.length,1);assert.equal(model.animations[0].name,'idle');
+ assert.equal(Object.values(model.animations[0].animators)[0].keyframes.length,2);
+ assert.equal(r.report.input.containerVersion,1);
+ const manifest=JSON.parse(readFileSync(new URL('../vendor/ysmparser/provenance.json',import.meta.url),'utf8'));
+ assert.equal(r.report.parser,`OpenYSM/YSMParser ${manifest.tag}`);
+ assert.equal(r.report.clientVerified,false);assert.equal(r.report.lossless,false);
+ const tool=await callYsm('mc_ysm_recover',{data:bytes.toString('base64')});
+ assert(!tool.isError,tool.content[0].text);assert.equal(JSON.parse(tool.content[0].text).models.length,1);
 });
 
 test('YSM parser artifacts match the pinned release manifest',()=>{
@@ -44,6 +59,19 @@ test('spec-2 bindings isolate projectile animation and texture from player',()=>
  files.push(json('arrow.animation.json',{animations:{spin:{bones:{body:{rotation:[0,1,0]}}}}}));files.push({path:'arrow.png',data:'iVBORw0KGgo='});
  const r=convertAssets(files);const arrow=r.models.find(m=>m.filename==='arrow_0.bbmodel').model;
  assert.deepEqual(arrow.animations.map(a=>a.name),['spin']);assert.equal(arrow.textures[0].name,'arrow.png');assert.equal(r.report.bindings.find(b=>b.model==='arrow.json').role,'arrow');
+});
+
+test('direct files.arrow bindings keep foreign player animations out of the projectile',()=>{
+ const files=assets(),geometry=JSON.parse(Buffer.from(files[0].data,'base64'));
+ files.push(json('arrow.json',geometry),{path:'arrow.png',data:'iVBORw0KGgo='});
+ files.push(json('ysm.json',{spec:2,files:{player:{model:{main:'main.json'},animation:{main:'main.animation.json'},texture:[{uv:'normal.png'}]},
+  arrow:{model:'arrow.json',animation:'arrow.animation.json',texture:{uv:'arrow.png'}}}}));
+ files.push(json('arrow.animation.json',{animations:{arrow_idle:{animation_length:1,bones:{body:{rotation:[0,1,0]}}}}}));
+ const result=convertAssets(files),arrow=result.models.find(m=>m.filename==='arrow_0.bbmodel').model;
+ assert.deepEqual(arrow.animations.map(a=>a.name),['arrow_idle']);
+ assert.equal(arrow.textures[0].name,'arrow.png');
+ assert.equal(result.report.bindings.find(b=>b.model==='arrow.json').source,'ysm.json/files/arrow');
+ assert.deepEqual(result.models.find(m=>m.filename==='main_0.bbmodel').model.animations.map(a=>a.name),['idle']);
 });
 
 test('negative sizes retain directed bounds rather than aborting or silently taking absolute size',()=>{

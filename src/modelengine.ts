@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './schema.js';
 
 export const MODELENGINE_WIKI='https://wiki.mythiccraft.io/modelengine/Modeling/Bone-Behaviors';
 export const LIMB_TYPES=['head','chest','body','right_arm','right_forearm','left_arm','left_forearm','right_leg','right_foreleg','left_leg','left_foreleg'] as const;

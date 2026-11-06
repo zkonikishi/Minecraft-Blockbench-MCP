@@ -2,17 +2,27 @@
 //
 // The suite is written for `bun test` and uses nothing but `bun:test` primitives, so it
 // runs unmodified against the vendored tree — no Node shim and no patched expectations.
-// It is run from inside `vendor/jason` so the upstream `@/*` -> `./*` path mapping in that
-// directory's own tsconfig.json applies, exactly as it does upstream.
+// A byte-identical scratch copy retains the upstream `@/*` -> `./*` mapping and
+// its Zod 3 test environment. The shipped integration is separately tested on Zod 4.
 //
 // Bun is a test-only tool here; it is not a dependency of the published package.
 import {spawnSync} from 'node:child_process';
-import {existsSync, mkdirSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {existsSync, mkdirSync, mkdtempSync, cpSync, symlinkSync} from 'node:fs';
+import {resolve,dirname,delimiter} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const suiteDir = resolve(root, 'vendor/jason');
+const testRoot=resolve(root,'.test-output');
+mkdirSync(testRoot,{recursive:true});
+const legacy=resolve(root,'node_modules/zod-upstream-test');
+if(!existsSync(legacy))throw Error('Run npm ci with development dependencies before test:jason');
+const suiteDir=mkdtempSync(resolve(testRoot,'jason-suite-'));
+cpSync(resolve(root,'vendor/jason'),suiteDir,{recursive:true});
+mkdirSync(resolve(suiteDir,'node_modules'));
+symlinkSync(legacy,resolve(suiteDir,'node_modules/zod'),'junction');
+symlinkSync(resolve(root,'node_modules/zod-to-json-schema'),resolve(suiteDir,'node_modules/zod-to-json-schema'),'junction');
+mkdirSync(resolve(suiteDir,'node_modules/@modelcontextprotocol'));
+symlinkSync(resolve(root,'node_modules/mcp-sdk-upstream-test'),resolve(suiteDir,'node_modules/@modelcontextprotocol/sdk'),'junction');
 
 // Prefer a real Bun binary over a launcher shim. A WinGet/symlink launcher can add ~10 s
 // to every child process, and this suite spawns one of its own.
@@ -42,13 +52,14 @@ if (!bun) {
 // on every platform, without editing a single vendored file.
 const tempRoot = resolve(root, '.test-output/jason-tmp');
 mkdirSync(tempRoot, {recursive: true});
-const env = {...process.env, TMPDIR: tempRoot, TMP: tempRoot, TEMP: tempRoot};
+const env = {...process.env, TMPDIR: tempRoot, TMP: tempRoot, TEMP: tempRoot,
+  PATH: bun==='bun'?process.env.PATH:dirname(resolve(bun))+delimiter+(process.env.PATH||'')};
 
 // --timeout: the suite's default 5 s is too tight for machines where spawning a child and
 // resolving the fixture's module graph is slow. Upstream's own CI is faster; the value is
 // a runner setting, not a change to the vendored tests.
 const args = ['test', '--timeout', '30000', ...process.argv.slice(2)];
-console.log(`bun ${args.join(' ')}  (cwd: vendor/jason, executable: ${bun})`);
+console.log(`bun ${args.join(' ')}  (unmodified snapshot: ${suiteDir}, executable: ${bun})`);
 console.log(`temp root: ${tempRoot}`);
 
 const result = spawnSync(bun, args, {cwd: suiteDir, stdio: 'inherit', env});

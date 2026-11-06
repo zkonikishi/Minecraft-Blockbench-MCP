@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './schema.js';
 import { zodTool, type ToolDefinition } from './registry.js';
 import { auditModel, ENGINE_PROFILES, ENGINE_SOURCES, type EngineTarget } from './engine-audit.js';
 import { createProject, applyGeometryBatch, upsertAnimation } from './vendor-runtime.mjs';

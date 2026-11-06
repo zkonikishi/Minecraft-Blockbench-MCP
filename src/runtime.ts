@@ -1,5 +1,5 @@
 import { ToolRegistry, zodTool } from './registry.js';
-import { z } from 'zod';
+import { z } from './schema.js';
 import { vendorTools } from './vendor-runtime.mjs';
 import { creatureTools } from './creature-tools.js';
 import { workflowTools } from './workflow-tools.js';

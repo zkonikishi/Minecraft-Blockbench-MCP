@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from './schema.js';
 import {zodTool} from './registry.js';
 const channels=['rotation','position','scale'];
 function values(k:any):number[]|null {

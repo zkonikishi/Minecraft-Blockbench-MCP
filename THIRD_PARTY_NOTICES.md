@@ -7,7 +7,7 @@ an official Blockbench, BetterModel or ModelEngine project.
 ## Jason J. Gardner — blockbench-mcp-plugin
 
 - Source: https://github.com/jasonjgardner/blockbench-mcp-plugin
-- Commit: `6295e20af26ec0f67bc81a5e95dac98db85a1801` (v1.9.3)
+- Commit: `97a8a80d3a37bf95c5e136d93d2c7da399fff753` (v1.10.1)
 - License: GPL-3.0-only. In this repository the original license is at
   `vendor/jason/LICENSE`, with the project's own copy at root `LICENSE`; the
   distributed package carries the GPL text as `LICENSE` (`dist/LICENSE` in a
@@ -68,14 +68,14 @@ an official Blockbench, BetterModel or ModelEngine project.
   time; replace HTTP forwarding with direct in-process calls. Do not start its
   original bridge or register its original plugin.
 
-`upstream-lock.json` records 428 selected upstream files and the pinned sources'
-own SHA-256 hashes across the three source trees above: jason 324, SwagRee 96 and
+`upstream-lock.json` records 432 selected upstream files and the pinned sources'
+own SHA-256 hashes across the three source trees above: jason 328, SwagRee 96 and
 sosadly 8. Vendored sources are stored with LF line endings and are byte-identical
 to those commits. The fourth source, OpenYSM/YSMParser, is pinned by
 `vendor/ysmparser/provenance.json` instead of the lock. Local integration changes
 live in `src/` and `scripts/`. Build output (`dist/`) must be distributed with
 this notice: it carries `LICENSE`, `THIRD_PARTY_NOTICES.md`, `SHA256SUMS` and
-`licenses/` (98 dependency license files, including `sosadly-MIT.txt` and
+`licenses/` (generated dependency license files, including `sosadly-MIT.txt` and
 `dependency-inventory.json`). The public repository supplies the matching source.
 
 Runtime/build dependencies retain their own licenses: Zod (MIT), zod-to-json-schema
@@ -100,6 +100,10 @@ not edited on disk. The distributed bundle is nonetheless a **modified build**, 
 GPL-3.0 section 5(a) requires be stated. `scripts/bundle-options.mjs` rewrites these
 vendored sources in memory while bundling:
 
+- Bare `zod` imports in integrated upstream tools resolve to `src/schema.ts`, which
+  uses Zod 4 and preserves the one-argument record syntax. The upstream tests retain
+  their original Zod 3 / SDK versions in an isolated scratch copy with development-only
+  dependencies. Those legacy packages are not included by production installs.
 - `vendor/jason/lib/constants.ts` — removes the `assert { type: "json" }` import attribute.
 - `vendor/swag/packages/plugin/src/host/preview-port.ts` — substitutes the local
   posed-bounds framing helper for the upstream cube-corner one.
@@ -120,7 +124,7 @@ The `vendor/jason` tree also carries 92 third-party agent skill files under
 loaded at build or run time, and they are redistributed verbatim as part of the
 pinned snapshot. The upstream repository publishes them under its own
 GPL-3.0-only `LICENSE` (`vendor/jason/LICENSE`, identical in text to the root
-`LICENSE`) at commit `6295e20af26ec0f67bc81a5e95dac98db85a1801`. Their individual
+`LICENSE`) at commit `97a8a80d3a37bf95c5e136d93d2c7da399fff753`. Their individual
 licensors are:
 
 - `mcp-builder/` (10 files) and `skill-creator/` (7 files): Apache-2.0, each with its

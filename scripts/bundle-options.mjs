@@ -10,6 +10,7 @@ export function bundleOptions() {
     alias:{'@/lib/factories':resolve(root,'src/jason-factory.ts'),'@':resolve(root,'vendor/jason'),
       '@blockbench-mcp/shared':resolve(root,'vendor/swag/packages/shared/src/index.ts')},
     plugins:[{name:'upstream-adapters',setup(build){
+      build.onResolve({filter:/^zod$/},()=>({path:resolve(root,'src/schema.ts')}));
       build.onLoad({filter:/vendor[\\/]swag[\\/]packages[\\/]plugin[\\/]src[\\/]host[\\/]preview-port\.ts$/},args=>{
         const original=readFileSync(args.path,'utf8');
         if(!original.includes('visible.flatMap(cubeWorldCorners)'))throw Error('Pinned screenshot framing boundary changed');

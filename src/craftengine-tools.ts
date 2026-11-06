@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from './schema.js';
 import {zodTool} from './registry.js';
 
 const segment=z.string().regex(/^[a-z0-9_-]{1,64}$/);
