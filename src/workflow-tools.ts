@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './schema.js';
 import { zodTool, type ToolDefinition } from './registry.js';
 import { compileProject } from './creature-tools.js';
 import { auditModel } from './engine-audit.js';

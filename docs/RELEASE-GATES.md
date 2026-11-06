@@ -1,6 +1,9 @@
 # 发布收尾与验收门槛
 
-**当前状态：`1.1.0` 已发布。** 下表的人工 / 实机门槛中，Web、Desktop、三个引擎、升级
+**当前状态：`1.1.0` 已发布，`1.1.1` 为修复候选。** 候选版的新检查与未验证项见
+[1.1.1 记录](FIX-1.1.1.md)。以下实机表格为历史记录，不代表候选版已重新通过。
+
+**1.1.0 历史状态：** 下表的人工 / 实机门槛中，Web、Desktop、三个引擎、升级
 与回滚、稳定运行、CI 多平台矩阵均已通过。**图形 Minecraft 客户端观感未纳入本版本的
 验收范围**，作为已知限制写在下方；它不是服务端或编辑器侧的缺陷。
 
@@ -22,11 +25,11 @@ npm ci --omit=dev --ignore-scripts --prefix D:/releases/new-stage
 node scripts/verify-release.mjs D:/releases/new-stage
 ```
 
-打包使用明确白名单，包含 relay、预编译插件、YSM WASM/转换器、用户脚本、依赖锁、双语 README 和许可证；不复制工作区 `.env`、样本、node_modules 或缓存。目录必须是仓库外的新目录；失败时保留现场，使用新目录重跑。
+打包使用明确白名单，包含 relay、预编译插件、YSM WASM/转换器、用户脚本、依赖锁、双语 README 和许可证；不复制工作区 `.env`、第三方模型样本、node_modules 或缓存；`scripts/ysm-fixture.mjs` 是随包携带的自制最小测试内容。目录必须是仓库外的新目录；失败时保留现场，使用新目录重跑。
 
 `scripts/build.mjs` 生成到 `dist/`：`minecraft_blockbench_mcp.js`、`LICENSE`、`THIRD_PARTY_NOTICES.md`、`SHA256SUMS` 和 `licenses/`（98 个依赖许可证文件，含 `sosadly-MIT.txt` 与 `dependency-inventory.json`）。`scripts/stage-release.mjs` 暂存整个 `dist/` 目录，发布包因此包含上述全部文件（暂存结果共 156 个文件）；`scripts/verify-release.mjs` 断言发布包含有这些许可证与校验和产物，并核对 `dist/SHA256SUMS` 与暂存包一致。
 
-`manifest.json` 记录各文件 SHA-256；校验脚本检查完整性后在随机 loopback 端口启动独立服务，使用包内依赖执行 SDK 初始化和离线工具调用。不连接或代替真实编辑器。这只是 staging，不会创建 GitHub Release。
+`manifest.json` 记录各文件 SHA-256；校验脚本检查完整性后在随机 loopback 端口启动独立服务，使用包内依赖执行 SDK 初始化、文件头识别和有效样本的实际 WASM 恢复。不连接或代替真实编辑器。这只是 staging，不会创建 GitHub Release。
 
 ## 人工 / 实机门槛
 

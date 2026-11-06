@@ -1,6 +1,8 @@
 import {Worker} from 'node:worker_threads';
 import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {convertAssets} from './model.mjs';
+const provenance=JSON.parse(readFileSync(new URL('../../../vendor/ysmparser/provenance.json',import.meta.url),'utf8'));
 export function identifyYsm(bytes){
  const b=Buffer.from(bytes);if(b.length<8)return {supported:false,format:'unknown'};
  const magic=b.subarray(0,4).toString('hex');
@@ -17,5 +19,5 @@ export async function recoverYsm(bytes,{texture}={}){
  });
  for(const f of files)if(!f.path||f.path.includes('..')||f.path.startsWith('/')||/[\\:\x00]/.test(f.path))throw Error('Unsafe extracted asset path');
  const result=convertAssets(files,{texture});
- return {...result,assets:files,report:{...result.report,input:identifyYsm(b),parser:'OpenYSM/YSMParser v0.3.5',clientVerified:false,lossless:false}};
+ return {...result,assets:files,report:{...result.report,input:identifyYsm(b),parser:`OpenYSM/YSMParser ${provenance.tag}`,clientVerified:false,lossless:false}};
 }

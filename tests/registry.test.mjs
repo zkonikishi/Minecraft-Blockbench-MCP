@@ -1,8 +1,32 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {runtime,content} from './helpers.mjs';
+import Ajv from 'ajv';
 const {ToolRegistry,createRuntime}=runtime;
 const tool=(name,execute)=>({name,description:name,inputSchema:{type:'object'},execute});
+
+test('Zod 4 integration retains record schemas, defaults and runtime rejection',async()=>{
+ const {z,zodTool}=runtime;
+ const schema=z.object({data:z.record(z.unknown()),counts:z.record(z.string(),z.number()),enabled:z.boolean().default(true)}).strict();
+ assert(schema._zod,'The integrated validators must use Zod 4');
+ const r=new ToolRegistry(()=>null);r.add(zodTool('compat','compat',schema,args=>args));
+ const result=await r.call('compat',{data:{name:'body'},counts:{body:1}});
+ assert(!result.isError);assert.equal(content(result).enabled,true);
+ assert.equal(content(result).data.name,'body');
+ assert((await r.call('compat',{data:{},counts:{body:'wrong'}})).isError);
+ assert((await r.call('compat',{data:{},counts:{},unexpected:true})).isError);
+});
+
+test('every integrated tool publishes a valid JSON Schema after Zod migration',()=>{
+ const ajv=new Ajv({strict:false,validateFormats:false});
+ for(const tool of createRuntime({desktop:true,advanced:true}).list())assert.doesNotThrow(()=>ajv.compile(tool.inputSchema),tool.name);
+});
+
+test('oversized invalid arrays do not accumulate an issue for every element',()=>{
+ const {z}=runtime;
+ const result=z.array(z.string()).max(4).safeParse(Array(10000).fill(null));
+ assert.equal(result.success,false);assert(result.error.issues.length<100,'Validation must bound issue accumulation');
+});
 test('three real provider inventories merge without collisions; default workflows and web restrictions',()=>{
   const r=createRuntime({desktop:false});const names=r.list().map(t=>t.name);
   for(const name of ['craft_apply_geometry_batch','craft_paint_face_grid','studio_place_cube','anim_create_animation','mc_audit_model','mc_export_bbmodel'])assert(names.includes(name),name);

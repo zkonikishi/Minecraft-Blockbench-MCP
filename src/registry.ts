@@ -1,5 +1,4 @@
-import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from './schema.js';
 
 export type Content = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string };
 export type ToolResult = { content: Content[]; isError?: boolean; structuredContent?: unknown };
@@ -17,7 +16,7 @@ export function normalizeResult(value: unknown): ToolResult {
   return textResult(value ?? null);
 }
 export function zodTool(name: string, description: string, schema: z.ZodTypeAny, execute: ToolDefinition['execute'], extras: Partial<ToolDefinition> = {}): ToolDefinition {
-  return {name,description,inputSchema:zodToJsonSchema(schema,{$refStrategy:'none',target:'jsonSchema7'}) as Record<string,unknown>,
+  return {name,description,inputSchema:z.toJSONSchema(schema,{target:'draft-7',io:'input',unrepresentable:'any'}) as Record<string,unknown>,
     validate:args=>schema.parse(args) as Record<string,unknown>,execute,...extras};
 }
 

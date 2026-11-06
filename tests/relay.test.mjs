@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
+import {request} from 'node:http';
 import {WebSocket} from 'ws';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -26,6 +27,24 @@ test('malformed JSON shapes close only their unauthenticated socket',async()=>{
     const closed=once(ws,'close');ws.send(JSON.stringify(value));assert.equal((await closed)[0],1008);
     assert.equal((await fetch(`http://127.0.0.1:${relay.port}/health`)).status,200);
   }}finally{await relay.close();}
+});
+
+test('SDK upgrade retains large inputs and rejects requests beyond the explicit HTTP limit',async()=>{
+ const relay=await startRelay({token,port:0});let ws,client;
+ try{
+  ws=await editor(relay.port);
+  ws.on('message',raw=>{const msg=JSON.parse(raw);if(msg.type==='call')ws.send(JSON.stringify({type:'result',id:msg.id,result:{content:[{type:'text',text:String(msg.arguments.data.length)}]}}));});
+  client=new Client({name:'large-input-test',version:'1'});
+  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${relay.port}/mcp`),{requestInit:{headers:{Authorization:`Bearer ${token}`}}}));
+  const size=5*1024*1024;
+  const result=await client.callTool({name:'test_tool',arguments:{data:'x'.repeat(size)}});
+  assert.equal(Number(result.content[0].text),size);
+  const status=await new Promise((resolve,reject)=>{
+   const req=request(`http://127.0.0.1:${relay.port}/mcp`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json, text/event-stream','Content-Length':48*1024*1024+1}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode));});
+   req.on('error',reject);req.setTimeout(5000,()=>req.destroy(Error('HTTP size rejection timed out')));req.end();
+  });
+  assert.equal(status,413);assert.equal(relay.connected(),true);
+ }finally{await client?.close();ws?.terminate();await relay.close();}
 });
 async function editor(port,secret=token,origin='https://web.blockbench.net'){
   const ws=new WebSocket(`ws://127.0.0.1:${port}/bridge`,{origin});

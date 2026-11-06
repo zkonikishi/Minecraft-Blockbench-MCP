@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from './schema.js';
 import {zodTool} from './registry.js';
 import {cemImportTool} from './cem-import.js';
 

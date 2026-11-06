@@ -5,19 +5,15 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Current release: `1.1.0`.** Every automated gate passes on a 10-job matrix
-(ubuntu / windows / macos × Node 22 and 24, plus ubuntu × Node 26, plus the vendored Jason
-upstream suite on all three platforms): type checking, build, 85 project regression tests,
-117 SwagRee/sosadly tests, 1035 vendored Jason tests, a clean production dependency audit
-and staged-release verification. **Editor, engine, upgrade-rollback and stability acceptance
-all pass**: connection, automatic reconnect, visual capture, undo recovery and the full
-authoring workflow against Blockbench 5.2.1 Web and the installed Blockbench 5.1.6
-Desktop; the exported models load and generate resource packs on Paper with ModelEngine
-R4.2.0, CraftEngine 26.9.2-SNAPSHOT and BetterModel 3.5.0; upgrading from the released
-`v0.1.0-alpha.10` and rolling back both preserve the open project and the token; and a
-15-minute soak with 9 relay restarts showed no failures, no handle leak and no memory
-growth. **Graphical client rendering is not part of the acceptance scope** and is
-listed as a known limitation — see [release gates](docs/RELEASE-GATES.md).
+**Latest published release: `1.1.0`; development candidate: `1.1.1`.**
+The candidate fixes offline YSM initialization and direct arrow bindings, adds a real
+parser recovery gate, updates Jason to v1.10.1 and migrates the shipped validators to
+patched Zod 4. Windows / Node 24 checks pass: type checking, build, 91 integration tests,
+117 adaptation tests, 1057 unmodified upstream tests, production dependency audit and
+packaged recovery. See [1.1.1 validation and limits](docs/FIX-1.1.1.md).
+The older editor/engine acceptance below belongs to 1.1.0. It is not fresh evidence for
+this candidate. Current graphical Web acceptance was blocked by the editor site's
+connection closing; Minecraft client rendering remains unverified.
 
 Let AI author Minecraft models, textures and skeletal animation in **Blockbench
 Desktop and Web**, and export to **BetterModel, ModelEngine and CraftEngine**.
@@ -28,17 +24,17 @@ enabled) plus **2 offline YSM tools**, so a default Web client's `tools/list` se
 **266**. Desktop exposes **277** (**284** with Advanced, 279/286 via `tools/list`) and adds
 file-related capabilities. Ten of these are the GeckoLib family added in 1.1.0. Actual availability is whatever `tools/list` returns after connecting.
 
-## What is in this release
+## Current implementation
 
-- **Upstream sync.** Jason `blockbench-mcp-plugin` v1.9.3, sosadly `blockbench-mcp`
+- **Upstream sync.** Jason `blockbench-mcp-plugin` v1.10.1, sosadly `blockbench-mcp`
   and OpenYSM/YSMParser v0.3.6 are pinned at their current commits; SwagRee is
   already at its latest. The vendored trees are byte-identical to those commits.
-- **Verifiable packaging.** A staged release now carries the 98-file dependency
+- **Verifiable packaging.** A staged release now carries a generated dependency
   license inventory, `SHA256SUMS`, the GPL text and the third-party notices, and the
   verification gate fails if any of them is missing.
 - **Reproducible upstream pin.** `upstream-lock.json` records the upstream sources'
-  own SHA-256 over 428 files, so the snapshot can be re-checked against upstream.
-- **Editor, engine, upgrade and stability acceptance.** Connection, automatic reconnect,
+  own SHA-256 over 432 files, so the snapshot can be re-checked against upstream.
+- **Historical 1.1.0 editor, engine, upgrade and stability acceptance.** Connection, automatic reconnect,
   visual capture, undo recovery and the full authoring workflow pass against Blockbench
   5.2.1 Web and the installed Blockbench 5.1.6 Desktop; the exported models load and
   generate resource packs on Paper with ModelEngine R4.2.0, CraftEngine
@@ -109,7 +105,7 @@ the local service.
 
 The release page lists a SHA-256 digest for every uploaded asset, so a download can be
 checked without a separate checksum file. Inside the ZIP, `manifest.json` records a
-SHA-256 for all 158 packaged files and `dist/SHA256SUMS` covers the plugin bundle;
+SHA-256 for all packaged files and `dist/SHA256SUMS` covers the plugin bundle;
 after installing dependencies, `node scripts/verify-release.mjs <unpacked-directory>`
 re-checks the whole manifest.
 
@@ -224,7 +220,8 @@ before deciding whether to retry.
 
 ## Verification status
 
-Automated, reproducible today:
+Historical **1.1.0** acceptance follows. For current candidate checks, use
+[1.1.1 validation](docs/FIX-1.1.1.md); do not carry these runtime receipts forward.
 
 | Scope | What passes |
 | --- | --- |

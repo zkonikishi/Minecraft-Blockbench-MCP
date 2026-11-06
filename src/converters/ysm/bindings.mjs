@@ -13,8 +13,11 @@ export function modelBinding(jsons,modelPath){
    return {role,animationFiles,texture:typeof player.texture==='string'?player.texture:selected?.uv,source:'ysm.json/files/player'};
   }
  }
- for(const [role,entry] of Object.entries(config.files.projectiles??{})){
-  if(entry?.model===modelPath)return {role,animationFiles:typeof entry.animation==='string'?[entry.animation]:Object.values(entry.animation??{}).filter(v=>typeof v==='string'),texture:typeof entry.texture==='string'?entry.texture:undefined,source:'ysm.json/files/projectiles'};
+ // Both the direct files.arrow slot and grouped projectiles occur in model packs.
+ const projectiles=[...Object.entries(config.files.projectiles??{}).map(([role,entry])=>({role,entry,source:'ysm.json/files/projectiles'})),
+  ...Object.entries(config.files).filter(([role])=>role!=='player'&&role!=='projectiles').map(([role,entry])=>({role,entry,source:`ysm.json/files/${role}`}))];
+ for(const {role,entry,source} of projectiles){
+  if(entry?.model===modelPath)return {role,animationFiles:typeof entry.animation==='string'?[entry.animation]:Object.values(entry.animation??{}).filter(v=>typeof v==='string'),texture:typeof entry.texture==='string'?entry.texture:entry.texture?.uv,source};
  }
  return null;
 }

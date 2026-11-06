@@ -5,17 +5,13 @@
 
 [English](README.md) | **简体中文**
 
-**当前发布：`1.1.0`。** 所有自动化门槛均已通过，CI 为 **10 个任务**（7 个平台/Node 检查：ubuntu /
-windows / macos × Node 22、24，外加 ubuntu × Node 26；另有 3 个任务在三个平台运行 vendored
-Jason 上游测试套件）：类型检查、构建、85 项项目回归测试、117 项 SwagRee/sosadly 测试、
-1035 项 vendored Jason 测试、生产依赖审计无告警，以及发布包校验。
-**编辑器、引擎、升级回滚与稳定运行均已验收**：连接、自动重连、视觉截图、撤销恢复与完整
-编辑流程，在 Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的
-模型在 Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0 上
-成功加载并生成资源包；从已发布的 `v0.1.0-alpha.10` 升级与回滚都保留了打开的工程与 token；
-15 分钟浸泡 + 9 次 relay 重启无失败、无句柄泄漏、无内存增长。
-**图形客户端观感不在验收范围内**，作为已知限制列出，见
-[发布门槛](docs/RELEASE-GATES.md)。
+**最近发布：`1.1.0`；开发候选：`1.1.1`。**
+候选版修复 YSM WASM 初始化和箭矢绑定，增加实际恢复的发布检查，同步 Jason v1.10.1，
+并把发布运行时迁移到修复后的 Zod 4。本次 Windows / Node 24 验证通过：类型检查、构建、
+91 项项目回归、117 项适配测试、1057 项原样上游测试、生产依赖审计和安装包实际恢复。
+详见 [1.1.1 修复与验证范围](docs/FIX-1.1.1.md)。
+下方旧编辑器／引擎验收属于 1.1.0，不能作为候选版的新证据。本次 Web 实机检查因编辑器
+站点连接被关闭而未完成；Minecraft 图形客户端效果仍未验证。
 
 让 AI 在 **Blockbench 桌面版与 Web 版**中制作 Minecraft 模型、贴图和骨骼动画，
 并对接 **BetterModel、ModelEngine、CraftEngine**。
@@ -27,16 +23,16 @@ Jason 上游测试套件）：类型检查、构建、85 项项目回归测试�
 其中 10 个是 1.1.0 新增的 GeckoLib 工具族。实际可用工具以连接后的
 `tools/list` 为准。
 
-## 本次发布内容
+## 当前实现
 
-- **上游同步。** Jason `blockbench-mcp-plugin` v1.9.3、sosadly `blockbench-mcp` 与
+- **上游同步。** Jason `blockbench-mcp-plugin` v1.10.1、sosadly `blockbench-mcp` 与
   OpenYSM/YSMParser v0.3.6 均固定在当前提交；SwagRee 已是最新。vendored 源码与这些
   提交逐字节一致。
-- **可校验的发布包。** 暂存包现在包含 98 个依赖许可证文件、`SHA256SUMS`、GPL 正文与
+- **可校验的发布包。** 暂存包包含生成的依赖许可证清单、`SHA256SUMS`、GPL 正文与
   第三方通知；缺失任何一项，校验门禁都会失败。
-- **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 428 个
+- **可复现的上游锁定。** `upstream-lock.json` 记录上游源码自身的 SHA-256，覆盖 432 个
   文件，快照可随时与上游重新比对。
-- **编辑器与引擎均已验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
+- **1.1.0 历史编辑器与引擎验收。** 连接、自动重连、视觉截图、撤销恢复与完整编辑流程，在
   Blockbench 5.2.1 Web 与已安装的 Blockbench 5.1.6 Desktop 上均通过；导出的模型在
   Paper + ModelEngine R4.2.0 / CraftEngine 26.9.2-SNAPSHOT / BetterModel 3.5.0 上成功
   加载并生成资源包。
@@ -97,7 +93,7 @@ npm.cmd start
 `dist/minecraft_blockbench_mcp.js`。单独下载插件 JS 不能代替本地服务。
 
 发布页会为每个产物列出 SHA-256 摘要，因此无需额外的校验文件即可核对下载。ZIP 包内的
-`manifest.json` 记录了全部 158 个文件的 SHA-256，`dist/SHA256SUMS` 覆盖插件 bundle；
+`manifest.json` 记录了全部文件的 SHA-256，`dist/SHA256SUMS` 覆盖插件 bundle；
 安装依赖后可执行 `node scripts/verify-release.mjs <解压目录>` 重新校验整份清单。
 
 ### 2. 连接 Blockbench
@@ -196,7 +192,8 @@ MCP 服务启动、客户端发现工具、Blockbench 编辑器连接是三个�
 
 ## 验证情况
 
-当前可复现的自动化验证：
+以下保留 **1.1.0 历史验收**。候选版的新验证见
+[1.1.1 验证记录](docs/FIX-1.1.1.md)，不能沿用旧实机记录。
 
 | 范围 | 通过内容 |
 | --- | --- |

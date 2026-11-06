@@ -52,7 +52,9 @@ export async function startRelay({token,port=39800,requestTimeout=120000,pluginF
     const server=new Server({name:'minecraft-blockbench-mcp',version:VERSION},{capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[...ysmTools,...tools]}));
     server.setRequestHandler(CallToolRequestSchema,async request=>invoke(request.params.name,request.params.arguments));
-    const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
+    // SDK defaults to 4 MiB. A supported 32 MiB YSM input needs ~43 MiB of
+    // base64 JSON; retain that contract while keeping the HTTP request bounded.
+    const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true,maxRequestBodySize:48*1024*1024});
     transports.add(transport);
     res.on('close',()=>{transports.delete(transport);void server.close();});
     try{await server.connect(transport);await transport.handleRequest(req,res);}

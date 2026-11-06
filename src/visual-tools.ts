@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from './schema.js';
 import {zodTool,normalizeResult,type ToolDefinition,type ToolResult} from './registry.js';
 import {visualDetailTool,frameSchema} from './visual-detail.js';
 

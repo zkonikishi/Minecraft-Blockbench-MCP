@@ -43,5 +43,13 @@ try{
  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${relay.port}/mcp`),{requestInit:{headers:{Authorization:`Bearer ${token}`}}}));
  const list=await client.listTools();assert.ok(list.tools.some(t=>t.name==='mc_ysm_inspect'));
  const header=Buffer.from([89,83,71,80,0,0,0,2]);const result=await client.callTool({name:'mc_ysm_inspect',arguments:{data:header.toString('base64')}});assert.ok(!result.isError);
- console.log(JSON.stringify({filesVerified:manifest.files.length,licensesStaged:true,checksumsVerified:true,isolatedInitialize:true,offlineToolCall:true,editorVerified:false}));
+ // Header inspection cannot detect an unusable WASM loader. Recover original test
+ // content through the packaged relay and parser before accepting a release.
+ const {createYsmFixture}=await load('scripts/ysm-fixture.mjs');
+ const recovered=await client.callTool({name:'mc_ysm_recover',arguments:{data:createYsmFixture().toString('base64')}});
+ assert.ok(!recovered.isError,JSON.stringify(recovered));
+ const recovery=JSON.parse(recovered.content[0].text);
+ assert.equal(recovery.models.length,1);assert.equal(recovery.models[0].model.elements.length,1);
+ assert.equal(recovery.models[0].model.animations.length,1);assert.equal(recovery.assets.length,3);
+ console.log(JSON.stringify({filesVerified:manifest.files.length,licensesStaged:true,checksumsVerified:true,isolatedInitialize:true,offlineToolCall:true,offlineRecovery:true,editorVerified:false}));
 }finally{await client.close();await relay.close();}

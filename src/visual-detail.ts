@@ -1,5 +1,5 @@
 import {posedCubeCorners} from './posed-bounds.js';
-import {z} from 'zod';
+import {z} from './schema.js';
 import {zodTool} from './registry.js';
 const vector=z.tuple([z.number().finite(),z.number().finite(),z.number().finite()]);
 export const frameSchema=z.object({center:vector,span:z.number().positive().max(1e7)}).strict();
