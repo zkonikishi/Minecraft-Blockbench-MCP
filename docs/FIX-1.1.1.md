@@ -30,6 +30,7 @@
 | Jason 原样上游测试 | 78 个文件、1057 项通过 |
 | 生产依赖审计 | `npm audit --omit=dev --audit-level=moderate`，0 告警 |
 | 安装包检查 | 文件清单／许可证／校验和、独立 SDK 初始化，以及有效模型的完整恢复通过 |
+| GitHub Actions | 修复提交 `07a924ec` 的 [Check #47](https://github.com/zkonikishi/Minecraft-Blockbench-MCP/actions/runs/42170043176) 全部 10 个任务通过：三平台 Node 22／24、Ubuntu Node 26，以及三平台原样上游套件 |
 | 本地真实 YSM 样本 | 阿罗娜和雷电将军两个版本，共 3 份完成解析与 bbmodel 生成 |
 | 本地原始 ZIP 样本 | CatDad 箭矢绑定为自己的动画文件；不再混入挥剑等玩家动画 |
 
@@ -43,7 +44,7 @@ schema 由本项目回归测试独立验证。第三方模型和用户数据未�
 - 本次 Web 编辑器实机脚本访问 `https://web.blockbench.net` 时连接被关闭，
   未完成编辑器流程。未沿用旧版本的通过结论。
 - 本次未重新执行 Desktop、ModelEngine / BetterModel / CraftEngine 实机验收、
-  升级回滚、多平台 CI 或长时间运行检查。
+  升级回滚或长时间运行检查。多平台自动检查见上表的明确提交与运行记录。
 - 恢复出的模型仍可能含需要处理的配置、材质、Molang 和控制器差异。
   生成 `.bbmodel` 不代表已适配 ModelEngine，更不代表 Minecraft 客户端显示正确。
 
